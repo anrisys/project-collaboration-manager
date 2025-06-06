@@ -1,0 +1,8 @@
+# Database connection properties
+db.driverClassName=driver_based-on_your_database
+db.jdbc.url = jdbc:mysql://localhost:port/your_database
+db.jdbc.username = your_db_username
+db.jdbc.password = your_db_password
+
+#HikariCP configuration
+hikaricp.maximumPoolSize = max_pool_size
