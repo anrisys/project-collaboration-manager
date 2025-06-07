@@ -1,22 +1,27 @@
 package com.anrisys.projectcollabmanager.view;
 
 import com.anrisys.projectcollabmanager.application.CLIMenuManager;
+import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.service.ProjectService;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProjectView {
     private final ProjectService projectService;
     private final User user;
-    // Maybe create a map with index start from 1 with value project
+    private final Map<Integer, Project> userProjects;
+    private boolean isUserProjectsDirty;
 
     public ProjectView(ProjectService projectService) {
         this.projectService = projectService;
         this.user = CLIMenuManager.getCurrentUser();
+        this.userProjects = new HashMap<>();
+        isUserProjectsDirty = false;
     }
 
     public void create() {
@@ -29,35 +34,67 @@ public class ProjectView {
         } else {
             project = Project.createWithDescription(title, user.getId(), description);
         }
+        isUserProjectsDirty = true;
         System.out.println("Successfully create project with title: " + project.getTitle());
     }
 
     public void listProjects() {
-        List<Project> projects = projectService.listProjectsByOwner(user.getId());
-
         System.out.println("Your projects: ");
-        projects.forEach(this::printProject);
-        for (int i = 1; i < projects.size(); i++) {
-            Project project = projects.get(i - 1);
-            System.out.printf("%d. %s. %n", i, project.getTitle());
+        if(isUserProjectsDirty) {
+            List<Project> projects = projectService.listProjectsByOwner(user.getId());
+
+            for (int i = 0; i < projects.size(); i++) {
+                userProjects.put(i + 1, projects.get(i));
+            }
+
+            isUserProjectsDirty = false;
+        } else {
+            userProjects.forEach(this::printProject);
         }
     }
 
     public void showProject() {
         listProjects();
 
-        Long projectId = (long) projectIdPrompt();
+        int projectIndex = projectIndexPrompt();
 
-        Project project = projectService.findProjectById(projectId, user.getId());
+        Project project = userProjects.get(projectIndex);
 
-        printProject(project);
+        printProject(projectIndex, project);
     }
 
     public void updateProject() {
-        System.out.println("Choose project Id which you want to update: ");
-        // Create array/list of valid id of the user
         listProjects();
-        int projected = projectIdPrompt();
+
+        System.out.println("Choose project index you want to update: ");
+        int projectIndex = projectIndexPrompt();
+
+        Project project = userProjects.get(projectIndex);
+        try {
+            String newTitle = titlePrompt();
+            String newDescription = descriptionPrompt();
+            ProjectUpdateRequest request = new ProjectUpdateRequest(newTitle, newDescription);
+
+            projectService.updateProject(project.getId(), user.getId(), request);
+            isUserProjectsDirty = true;
+        } catch (Exception e) {
+            System.out.println("Can't update project. Please try again");
+        }
+    }
+
+    public void deleteProject() {
+        listProjects();
+
+        System.out.println("Choose project index you want to delete: ");
+        int projectIndex = projectIndexPrompt();
+
+        Project project = userProjects.get(projectIndex);
+        try {
+            projectService.deleteProject(project.getId(), user.getId());
+            isUserProjectsDirty = true;
+        } catch (Exception e) {
+            System.out.println("Can't delete project. Please try again");
+        }
     }
 
     private String titlePrompt() {
@@ -74,12 +111,19 @@ public class ProjectView {
         return CLIInputUtil.requestStringInput();
     }
 
-    private int projectIdPrompt() {
-        System.out.println("Project id: ");
-        return CLIInputUtil.requestIntInput();
+    private int projectIndexPrompt() {
+        while(true) {
+            int index = CLIInputUtil.requestIntInput();
+
+            if (index > 0 && index <= userProjects.size()) {
+                return index;
+            }
+
+            System.out.println("Invalid project index.");
+        }
     }
 
-    private void printProject(Project project) {
-        System.out.printf("%d. %s. %n", project.getId(), project.getTitle());
+    private void printProject(int index ,Project project) {
+        System.out.printf("%d. %s. %n", index, project.getTitle());
     }
 }
