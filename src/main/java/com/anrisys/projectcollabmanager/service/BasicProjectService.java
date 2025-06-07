@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.service;
 
+import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.projects.ProjectNotFoundException;
 import com.anrisys.projectcollabmanager.repository.ProjectRepository;
@@ -48,12 +49,11 @@ public class BasicProjectService implements ProjectService{
     }
 
     @Override
-    public Project updateProject(Long projectId, Long clientId, Project project) {
-        Project projectFound = getFoundProject(projectId);
+    public Project updateProject(Long projectId, Long clientId, ProjectUpdateRequest request) {
+        Project project = getFoundProject(projectId);
+        isActionPermitted(project.getOwner(), clientId);
 
-        isActionPermitted(projectFound.getOwner(), clientId);
-
-        return repository.update(projectFound.getId(), project);
+        return repository.update(project.getId(), request);
     }
 
     @Override

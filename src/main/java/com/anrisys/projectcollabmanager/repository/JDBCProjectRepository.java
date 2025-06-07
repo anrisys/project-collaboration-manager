@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.repository;
 
+import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
@@ -157,24 +158,38 @@ public class JDBCProjectRepository implements ProjectRepository{
     }
 
     @Override
-    public Project update(Long id, Project project) throws DataAccessException {
-        final String sql = "UPDATE projects SET title, description VALUES (?, ?) WHERE id = ?";
+    public Project update(Long id, ProjectUpdateRequest request) throws DataAccessException {
+        StringBuilder sql = new StringBuilder("UPDATE projects SET ");
+        List<Object> params = new ArrayList<>();
+
+        if(request.title() != null) {
+            sql.append("title = ?, ");
+            params.add(request.title());
+        }
+
+        if(request.description() != null) {
+            sql.append("description = ?, ");
+            params.add(request.description());
+        }
+
+        sql.append("WHERE id = ?");
+        params.add(id);
 
         try(Connection connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql);
+            PreparedStatement statement = connection.prepareStatement(sql.toString());
         ) {
-            statement.setString(1, project.getTitle());
-            statement.setString(2, project.getDescription());
-            statement.setLong(3, id);
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i, params.get(i));
+            }
 
             int affectedRow = statement.executeUpdate();
 
             if(affectedRow != 1) {
-                throw new DataAccessException("Failed to update project" + project.getTitle());
+                throw new DataAccessException("Failed to update project" + request.title());
             }
 
             return findById(id).orElseThrow(
-                    () -> new DataAccessException("Failed to fetch updated project" + project.getTitle()
+                    () -> new DataAccessException("Failed to fetch updated project" + request.title()
                     )
             );
         } catch (SQLException e) {

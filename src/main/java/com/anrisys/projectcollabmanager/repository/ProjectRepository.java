@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.repository;
 
+import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 
@@ -11,7 +12,7 @@ public interface ProjectRepository {
     Optional<Project> findById(Long id) throws DataAccessException;
     Optional<Project> findByTitle(String title) throws DataAccessException;
     Optional<List<Project>> findByOwnerId(Long owner) throws DataAccessException;
-    Project update(Long id, Project project) throws DataAccessException;
+    Project update(Long id, ProjectUpdateRequest project) throws DataAccessException;
     Project delete(Long id) throws DataAccessException;
     boolean HasSameProjectName(Long owner, String title);
 }
