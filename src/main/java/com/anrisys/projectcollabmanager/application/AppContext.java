@@ -1,14 +1,16 @@
 package com.anrisys.projectcollabmanager.application;
 
 import com.anrisys.projectcollabmanager.entity.User;
+import com.anrisys.projectcollabmanager.exception.core.ExitAppException;
+import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
 public class AppContext {
     public enum State {
-        MAIN_MENU, AUTH_MENU, PROJECT_MENU, TASK_MENU
+        START_MENU, MAIN_MENU,PROJECT_MENU, TASK_MENU
     }
 
     private User currentUser;
-    private State currentState = State.MAIN_MENU;
+    private State currentState = State.START_MENU;
 
     public User getCurrentUser() {
         return currentUser;
@@ -31,7 +33,14 @@ public class AppContext {
     }
 
     public void logout() {
-        this.currentUser = null;
-        this.currentState = State.MAIN_MENU;
+        System.out.println("Are you sure to log out?\n");
+
+        boolean isGoingToLogOut = CLIInputUtil.requestBooleanInput();
+
+        if(isGoingToLogOut) {
+            this.currentUser = null;
+            this.currentState = State.START_MENU;
+            throw new ExitAppException();
+        }
     }
 }

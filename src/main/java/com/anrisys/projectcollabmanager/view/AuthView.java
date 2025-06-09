@@ -26,26 +26,14 @@ public class AuthView {
         System.out.println("You have successfully registered.");
     }
 
-    public void login() {
+    public User login() {
         String email = promptEmail();
         String password = promptPassword();
 
         User loggedInUser = service.register(email, password);
 
-        CLIMenuManager.setCurrentUser(loggedInUser);
-
         System.out.printf("Hello, %s! %n", loggedInUser.getEmail());
-    }
-
-    public void logout() {
-        System.out.println("Are you sure to log out?\n");
-
-        boolean isGoingToLogOut = CLIInputUtil.requestBooleanInput();
-
-        if(isGoingToLogOut) {
-            CLIMenuManager.setCurrentUser(null);
-            throw new ExitAppException();
-        }
+        return loggedInUser;
     }
 
     private String promptEmail() {
