@@ -2,8 +2,6 @@ package com.anrisys.projectcollabmanager.util;
 
 import java.util.Scanner;
 
-import java.util.Scanner;
-
 public class CLIInputUtil {
     private static final Scanner scanner;
 

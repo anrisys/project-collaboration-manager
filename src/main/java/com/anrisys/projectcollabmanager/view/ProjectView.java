@@ -24,8 +24,9 @@ public class ProjectView {
         isUserProjectsDirty = false;
     }
 
-    public void create() {
+    public void createProject() {
         String title = titlePrompt();
+
         String description = descriptionPrompt();
 
         Project project;
@@ -100,8 +101,9 @@ public class ProjectView {
     private String titlePrompt() {
         while(true) {
             System.out.println("Project title:");
-            String title = CLIInputUtil.requestStringInput();
-            if (!title.trim().isEmpty()) return title;
+            System.out.println("To cancel action type: X");
+            String input = CLIInputUtil.requestStringInput();
+            if (!input.trim().isEmpty()) return input;
             System.out.println("Invalid project title.");
         }
     }
