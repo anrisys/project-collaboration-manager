@@ -4,7 +4,7 @@ import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.ExitAppException;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
-public class AppContext {
+public class AppContext implements ReadOnlyAppContext {
     public enum State {
         START_MENU, MAIN_MENU,PROJECT_MENU, TASK_MENU
     }

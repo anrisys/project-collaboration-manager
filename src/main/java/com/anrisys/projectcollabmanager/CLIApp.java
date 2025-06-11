@@ -21,11 +21,11 @@ public class CLIApp {
     public static void main(String[] args) {
         try {
             DataSource dataSource = DBConfig.getDataSource();
-
+            AppContext appContext = new AppContext();
             // Project Feature
             ProjectRepository projectRepository = new JDBCProjectRepository(dataSource);
             ProjectService projectService = new BasicProjectService(projectRepository);
-            ProjectView projectView = new ProjectView(projectService);
+            ProjectView projectView = new ProjectView(projectService, appContext);
 
             // Auth Feature
             UserRepository userRepository = new JDBCUserRepository(dataSource);
@@ -33,8 +33,6 @@ public class CLIApp {
             AuthView authView = new AuthView(authService);
 
             ViewRegistry viewRegistry = new ViewRegistry(authView, projectView);
-            AppContext appContext = new AppContext();
-
             CLIMenuManager menuManager = new CLIMenuManager(viewRegistry, appContext);
             menuManager.start();
         } finally {

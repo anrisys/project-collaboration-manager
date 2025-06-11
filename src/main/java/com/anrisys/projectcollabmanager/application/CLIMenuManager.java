@@ -80,16 +80,22 @@ public class CLIMenuManager {
         System.out.println(
                 """
                 Choose actions:
-                1. Project menu
-                2. Task menu
+                1. Create new project
+                2. Show list of projects
+                3. Show detail of a project
+                4. Update a project
+                5. Delete a project
                 0. Back
                 """
         );
         int action = CLIInputUtil.requestIntInput();
         switch (action) {
             case 0 -> context.setCurrentState(AppContext.State.MAIN_MENU);
-            case 1 -> context.setCurrentState(AppContext.State.PROJECT_MENU);
-            case 2 -> context.setCurrentState(AppContext.State.TASK_MENU);
+            case 1 -> viewRegistry.projectView.createProject();
+            case 2 -> viewRegistry.projectView.listProjects();
+            case 3 -> viewRegistry.projectView.showProject();
+            case 4 -> viewRegistry.projectView.updateProject();
+            case 5 -> viewRegistry.projectView.deleteProject();
             default -> System.out.println("Please enter valid menu option");
         }
     }

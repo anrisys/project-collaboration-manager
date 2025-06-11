@@ -1,9 +1,8 @@
 package com.anrisys.projectcollabmanager.view;
 
-import com.anrisys.projectcollabmanager.application.CLIMenuManager;
+import com.anrisys.projectcollabmanager.application.ReadOnlyAppContext;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
-import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.service.ProjectService;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
@@ -13,13 +12,13 @@ import java.util.Map;
 
 public class ProjectView {
     private final ProjectService projectService;
-    private final User user;
+    private final ReadOnlyAppContext context;
     private final Map<Integer, Project> userProjects;
     private boolean isUserProjectsDirty;
 
-    public ProjectView(ProjectService projectService) {
+    public ProjectView(ProjectService projectService, ReadOnlyAppContext context) {
         this.projectService = projectService;
-        this.user = CLIMenuManager.getCurrentUser();
+        this.context = context;
         this.userProjects = new HashMap<>();
         isUserProjectsDirty = false;
     }
@@ -31,9 +30,9 @@ public class ProjectView {
 
         Project project;
         if (description.trim().isEmpty()) {
-            project = Project.create(title, user.getId());
+            project = Project.create(title, context.getCurrentUser().getId());
         } else {
-            project = Project.createWithDescription(title, user.getId(), description);
+            project = Project.createWithDescription(title, context.getCurrentUser().getId(), description);
         }
         isUserProjectsDirty = true;
         System.out.println("Successfully create project with title: " + project.getTitle());
@@ -42,7 +41,7 @@ public class ProjectView {
     public void listProjects() {
         System.out.println("Your projects: ");
         if(isUserProjectsDirty) {
-            List<Project> projects = projectService.listProjectsByOwner(user.getId());
+            List<Project> projects = projectService.listProjectsByOwner(context.getCurrentUser().getId());
 
             for (int i = 0; i < projects.size(); i++) {
                 userProjects.put(i + 1, projects.get(i));
@@ -76,7 +75,7 @@ public class ProjectView {
             String newDescription = descriptionPrompt();
             ProjectUpdateRequest request = new ProjectUpdateRequest(newTitle, newDescription);
 
-            projectService.updateProject(project.getId(), user.getId(), request);
+            projectService.updateProject(project.getId(), context.getCurrentUser().getId(), request);
             isUserProjectsDirty = true;
         } catch (Exception e) {
             System.out.println("Can't update project. Please try again");
@@ -91,7 +90,7 @@ public class ProjectView {
 
         Project project = userProjects.get(projectIndex);
         try {
-            projectService.deleteProject(project.getId(), user.getId());
+            projectService.deleteProject(project.getId(), context.getCurrentUser().getId());
             isUserProjectsDirty = true;
         } catch (Exception e) {
             System.out.println("Can't delete project. Please try again");
