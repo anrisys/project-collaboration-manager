@@ -1,8 +1,6 @@
 package com.anrisys.projectcollabmanager.view;
 
-import com.anrisys.projectcollabmanager.application.CLIMenuManager;
 import com.anrisys.projectcollabmanager.entity.User;
-import com.anrisys.projectcollabmanager.exception.core.ExitAppException;
 import com.anrisys.projectcollabmanager.service.AuthService;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 

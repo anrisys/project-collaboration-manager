@@ -1,9 +1,18 @@
 package com.anrisys.projectcollabmanager.service;
 
-import com.anrisys.projectcollabmanager.dto.CreateCollaborationRequest;
+import com.anrisys.projectcollabmanager.dto.ProjectDTO;
+import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.Collaboration;
 
+import java.util.List;
+
 public interface CollaborationService {
-    Collaboration create(CreateCollaborationRequest request);
-    Collaboration delete(Long collaborationId, Long clientId);
+    List<ProjectDTO> listCollaborationProjects(Long userId);
+    List<UserDTO> listProjectMembers(Long projectId);
+    Collaboration inviteUserToProjectById(Long projectId, Long inviterUserId, Long inviteeUserId);
+    Collaboration inviteUserToProjectByEmail(Long projectId, Long inviterUserId, String inviteeEmail);
+    void removeUserFromProjectById(Long projectId, Long projectOwnerId, Long memberId);
+    void removeUserFromProjectByUserEmail(Long projectId, Long projectOwnerId, String memberEmail);
+    boolean isUserMember(Long projectId, Long userId);
+    void leaveProjectCollaboration(Long projectId, Long userId);
 }

@@ -21,6 +21,7 @@ public class CLIMenuManager {
                     case START_MENU -> showStartMenu();
                     case MAIN_MENU -> showMainMenu();
                     case PROJECT_MENU -> showProjectMenu();
+                    case COLLABORATION_MENU -> showCollaborationMenu();
                     case TASK_MENU -> showTaskMenu();
                     default -> throw new ExitAppException();
                 }
@@ -45,12 +46,12 @@ public class CLIMenuManager {
         int action = CLIInputUtil.requestIntInput();
         switch (action) {
             case 1 -> {
-                User user = viewRegistry.authView.login();
+                User user = viewRegistry.authView().login();
                 context.setCurrentUser(user);
             }
             case 2 -> {
-                viewRegistry.authView.register();
-                User user = viewRegistry.authView.login();
+                viewRegistry.authView().register();
+                User user = viewRegistry.authView().login();
                 context.setCurrentUser(user);
             }
             case 3 -> throw new ExitAppException();
@@ -63,7 +64,7 @@ public class CLIMenuManager {
                 """
                 Choose menu:
                 1. Project menu
-                2. Task menu
+                2. Collaboration menu
                 0. Log out
                 """
         );
@@ -91,11 +92,35 @@ public class CLIMenuManager {
         int action = CLIInputUtil.requestIntInput();
         switch (action) {
             case 0 -> context.setCurrentState(AppContext.State.MAIN_MENU);
-            case 1 -> viewRegistry.projectView.createProject();
-            case 2 -> viewRegistry.projectView.listProjects();
-            case 3 -> viewRegistry.projectView.showProject();
-            case 4 -> viewRegistry.projectView.updateProject();
-            case 5 -> viewRegistry.projectView.deleteProject();
+            case 1 -> viewRegistry.projectView().createProject();
+            case 2 -> viewRegistry.projectView().listProjects();
+            case 3 -> viewRegistry.projectView().showProject();
+            case 4 -> viewRegistry.projectView().updateProject();
+            case 5 -> viewRegistry.projectView().deleteProject();
+            default -> System.out.println("Please enter valid menu option");
+        }
+    }
+
+    private void showCollaborationMenu() {
+        System.out.println(
+                """
+                Choose actions:
+                1. Show list collaboration projects
+                2. Show list collaboration project members
+                3. Add user into project collaboration
+                4. Remove member from project collaboration
+                5. Leave a project collaboration
+                0. Back
+                """
+        );
+        int action = CLIInputUtil.requestIntInput();
+        switch (action) {
+            case 0 -> context.setCurrentState(AppContext.State.MAIN_MENU);
+            case 1 -> viewRegistry.collaborationView().listMyCollaborations();
+            case 2 -> viewRegistry.collaborationView().listProjectMembers();
+            case 3 -> viewRegistry.collaborationView().addUserToProjectCollaboration();
+            case 4 -> viewRegistry.collaborationView().removeUserFromProject();
+            case 5 -> viewRegistry.collaborationView().leaveProject();
             default -> System.out.println("Please enter valid menu option");
         }
     }

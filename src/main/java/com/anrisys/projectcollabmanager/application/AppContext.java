@@ -6,7 +6,7 @@ import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
 public class AppContext implements ReadOnlyAppContext {
     public enum State {
-        START_MENU, MAIN_MENU,PROJECT_MENU, TASK_MENU
+        START_MENU, MAIN_MENU,PROJECT_MENU, COLLABORATION_MENU, TASK_MENU
     }
 
     private User currentUser;

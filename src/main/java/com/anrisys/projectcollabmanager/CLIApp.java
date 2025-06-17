@@ -4,15 +4,10 @@ import com.anrisys.projectcollabmanager.application.AppContext;
 import com.anrisys.projectcollabmanager.application.CLIMenuManager;
 import com.anrisys.projectcollabmanager.application.DBConfig;
 import com.anrisys.projectcollabmanager.application.ViewRegistry;
-import com.anrisys.projectcollabmanager.repository.JDBCProjectRepository;
-import com.anrisys.projectcollabmanager.repository.JDBCUserRepository;
-import com.anrisys.projectcollabmanager.repository.ProjectRepository;
-import com.anrisys.projectcollabmanager.repository.UserRepository;
-import com.anrisys.projectcollabmanager.service.AuthService;
-import com.anrisys.projectcollabmanager.service.BasicAuthService;
-import com.anrisys.projectcollabmanager.service.BasicProjectService;
-import com.anrisys.projectcollabmanager.service.ProjectService;
+import com.anrisys.projectcollabmanager.repository.*;
+import com.anrisys.projectcollabmanager.service.*;
 import com.anrisys.projectcollabmanager.view.AuthView;
+import com.anrisys.projectcollabmanager.view.CollaborationView;
 import com.anrisys.projectcollabmanager.view.ProjectView;
 
 import javax.sql.DataSource;
@@ -32,7 +27,15 @@ public class CLIApp {
             AuthService authService = new BasicAuthService(userRepository, projectService);
             AuthView authView = new AuthView(authService);
 
-            ViewRegistry viewRegistry = new ViewRegistry(authView, projectView);
+            // User service
+            UserService userService = new BasicUserService(userRepository);
+
+            // Collaboration Feature
+            CollaborationRepository collaborationRepository = new JDBCCollaborationRepository(dataSource);
+            CollaborationService collaborationService = new BasicCollaborationService(collaborationRepository, projectService, userService);
+            CollaborationView collaborationView = new CollaborationView(collaborationService, appContext);
+
+            ViewRegistry viewRegistry = new ViewRegistry(authView, projectView, collaborationView);
             CLIMenuManager menuManager = new CLIMenuManager(viewRegistry, appContext);
             menuManager.start();
         } finally {
