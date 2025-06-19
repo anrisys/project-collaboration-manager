@@ -1,19 +1,24 @@
 package com.anrisys.projectcollabmanager.service;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
+import com.anrisys.projectcollabmanager.dto.TaskDTO;
 import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
-import com.anrisys.projectcollabmanager.exception.core.ResourceNotFoundException;
+import com.anrisys.projectcollabmanager.exception.core.UnauthorizedException;
 import com.anrisys.projectcollabmanager.exception.tasks.TaskAlreadyExistsException;
+import com.anrisys.projectcollabmanager.exception.tasks.TaskNotFoundException;
 import com.anrisys.projectcollabmanager.repository.TaskRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public class BasicTaskService implements TaskService{
+public class TaskServiceImpl implements TaskService{
     private final TaskRepository taskRepository;
+    private final CollaborationService collaborationService;
 
-    public BasicTaskService(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, CollaborationService collaborationService) {
         this.taskRepository = taskRepository;
+        this.collaborationService = collaborationService;
     }
 
     @Override
@@ -28,12 +33,23 @@ public class BasicTaskService implements TaskService{
     }
 
     @Override
-    public Task findById(Long projectId, Long clientId) {
-        return null;
+    public Task getTaskById(Long taskId, Long clientId) {
+        Task task = taskRepository.findById(taskId).orElseThrow(
+                () -> new TaskNotFoundException(taskId)
+        );
+
+        boolean userHasPermission = collaborationService.isUserMember(task.getProjectId(), clientId);
+
+        if (!userHasPermission) throw new UnauthorizedException();
+
+        // What if the task isn't in collaboration project?
+        // Should every personal project count/saved into collaboration? --> circular dependency
+
+        return task;
     }
 
     @Override
-    public Task findByTitle(String title, Long clientId) {
+    public Task getTaskByTitle(String title, Long clientId) {
         return null;
     }
 
@@ -43,17 +59,17 @@ public class BasicTaskService implements TaskService{
     }
 
     @Override
-    public List<Task> getAllTaskByProjectId(Long projectId, Long clientId) {
+    public List<TaskDTO> getAllTaskByProjectId(Long projectId, Long clientId) {
         return List.of();
     }
 
     @Override
-    public List<Task> getAllTaskByProjectIdAndAssigneeId(Long projectId) {
+    public List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId) {
         return List.of();
     }
 
     @Override
-    public List<Task> getAllTaskByProjectIdAndStatus(Long projectId, Long clientId) {
+    public List<TaskDTO> getAllTaskByProjectIdAndStatus(Long projectId, Long clientId) {
         return List.of();
     }
 

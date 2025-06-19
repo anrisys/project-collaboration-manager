@@ -1,6 +1,7 @@
 package com.anrisys.projectcollabmanager.repository;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
+import com.anrisys.projectcollabmanager.dto.TaskDTO;
 import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
@@ -22,6 +23,7 @@ public class JDBCTaskRepository implements TaskRepository{
     public Task save(CreateTaskRequest task) throws DataAccessException {
         final String sql =
                 "INSERT INTO tasks(title, short_description, project_id, assignee_id) VALUES(?, ?, ?, ?)";
+        final String exceptionMessage = "Failed to create task : %s".formatted(task.title());
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
@@ -33,12 +35,12 @@ public class JDBCTaskRepository implements TaskRepository{
 
           int update = statement.executeUpdate();
           if(update != 1) {
-              throw new DataAccessException("Failed to create task : " + task.title());
+              throw new DataAccessException(exceptionMessage);
           }
 
           try (ResultSet resultSet = statement.getGeneratedKeys()) {
               if(!resultSet.next()) {
-                  throw new DataAccessException("Failed to create task : " + task.title());
+                  throw new DataAccessException(exceptionMessage);
               }
 
               return findById(resultSet.getLong(1)).orElseThrow(
@@ -98,6 +100,7 @@ public class JDBCTaskRepository implements TaskRepository{
     @Override
     public Task deleteById(Long id) throws DataAccessException {
         final String deleteQuery = "DELETE FROM tasks WHERE id = ?";
+        final String exceptionMessage = "Failed to delete a task with id : %d".formatted(id);
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(deleteQuery)
@@ -110,18 +113,18 @@ public class JDBCTaskRepository implements TaskRepository{
 
             int affectedRow = statement.executeUpdate();
             if(affectedRow != 1) {
-                throw new DataAccessException("Failed to delete a task with id : " + id);
+                throw new DataAccessException(exceptionMessage);
             }
 
             return task;
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to delete task with id : " + id);
+            throw new DataAccessException(exceptionMessage);
         }
     }
 
     @Override
-    public Optional<List<Task>> findAllByProjectId(Long projectId) throws DataAccessException {
-        final String sql = "SELECT * FROM tasks WHERE project_id = ?";
+    public Optional<List<TaskDTO>> findAllByProjectId(Long projectId) throws DataAccessException {
+        final String sql = "SELECT id, title, status FROM tasks WHERE project_id = ?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)
@@ -130,9 +133,9 @@ public class JDBCTaskRepository implements TaskRepository{
 
             try(ResultSet resultSet = statement.executeQuery()) {
                 if(!resultSet.next()) return Optional.empty();
-                List<Task> tasks = new ArrayList<>();
+                List<TaskDTO> tasks = new ArrayList<>();
                 while(resultSet.next()) {
-                    tasks.add(getFromDB(resultSet));
+                    tasks.add(getTaskDTO(resultSet));
                 }
                 return Optional.of(tasks);
             }
@@ -142,8 +145,8 @@ public class JDBCTaskRepository implements TaskRepository{
     }
 
     @Override
-    public Optional<List<Task>> findAllByProjectIdAndAssigneeId(Long projectId, Long assigneeId) throws DataAccessException {
-        final String sql = "SELECT * FROM tasks WHERE project_id = ? AND assignee_id = ?";
+    public Optional<List<TaskDTO>> findAllByProjectIdAndAssigneeId(Long projectId, Long assigneeId) throws DataAccessException {
+        final String sql = "SELECT id, title, status FROM tasks WHERE project_id = ? AND assignee_id = ?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)
@@ -153,9 +156,9 @@ public class JDBCTaskRepository implements TaskRepository{
 
             try(ResultSet resultSet = statement.executeQuery()) {
                 if(!resultSet.next()) return Optional.empty();
-                List<Task> tasks = new ArrayList<>();
+                List<TaskDTO> tasks = new ArrayList<>();
                 while(resultSet.next()) {
-                    tasks.add(getFromDB(resultSet));
+                    tasks.add(getTaskDTO(resultSet));
                 }
                 return Optional.of(tasks);
             }
@@ -169,8 +172,8 @@ public class JDBCTaskRepository implements TaskRepository{
     }
 
     @Override
-    public Optional<List<Task>> findAllByProjectIdAndByStatus(Long projectId, Task.Status status) throws DataAccessException {
-        final String sql = "SELECT * FROM tasks WHERE project_id = ? AND status = ?";
+    public Optional<List<TaskDTO>> findAllByProjectIdAndByStatus(Long projectId, Task.Status status) throws DataAccessException {
+        final String sql = "SELECT id, title, status FROM tasks WHERE project_id = ? AND status = ?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)
@@ -180,9 +183,9 @@ public class JDBCTaskRepository implements TaskRepository{
 
             try(ResultSet resultSet = statement.executeQuery()) {
                 if(!resultSet.next()) return Optional.empty();
-                List<Task> tasks = new ArrayList<>();
+                List<TaskDTO> tasks = new ArrayList<>();
                 while(resultSet.next()) {
-                    tasks.add(getFromDB(resultSet));
+                    tasks.add(getTaskDTO(resultSet));
                 }
                 return Optional.of(tasks);
             }
@@ -325,6 +328,13 @@ public class JDBCTaskRepository implements TaskRepository{
         }
     }
 
+    private static TaskDTO getTaskDTO(ResultSet resultSet) throws SQLException {
+        return new TaskDTO(
+                resultSet.getLong("id"),
+                resultSet.getString("title"),
+                Task.Status.valueOf(resultSet.getString("status"))
+        );
+    }
 
     private static Task getFromDB(ResultSet resultSet) throws SQLException {
         return Task.fromDB(resultSet.getLong("id"),
