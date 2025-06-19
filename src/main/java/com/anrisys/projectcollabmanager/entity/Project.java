@@ -7,40 +7,39 @@ public class Project {
     private Long id;
     private String title;
     private Long owner;
+    private boolean isPersonal;
     private String description;
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Project(Long id, String title, Long owner, String description, Instant createdAt, Instant updatedAt) {
+    public Project(Long id, String title, Long owner, boolean isPersonal, String description, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.title = title;
         this.owner = owner;
+        this.isPersonal = isPersonal;
         this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public static Project create(String title, Long owner) {
-        return new Project(null, title, owner, null, null, null);
-    }
-
-    public static Project createWithDescription(
-            String title,
-            Long owner,
-            String description)
-    {
-        return new Project(null, title, owner, description, null, null);
     }
 
     public static Project fromDB(
             Long id,
             String title,
             Long owner,
+            boolean isPersonal,
             String description,
             Instant createdAt,
             Instant updatedAt)
     {
-        return new Project(id, title, owner, description, createdAt, updatedAt);
+        return new Project(id, title, owner, isPersonal, description, createdAt, updatedAt);
+    }
+
+    public boolean isPersonal() {
+        return isPersonal;
+    }
+
+    public void setPersonal(boolean personal) {
+        isPersonal = personal;
     }
 
     public Instant getCreatedAt() {

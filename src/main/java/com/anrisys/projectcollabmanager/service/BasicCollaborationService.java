@@ -39,7 +39,7 @@ public class BasicCollaborationService implements CollaborationService{
 
     @Override
     public Collaboration inviteUserToProjectById(Long projectId, Long inviterUserId, Long inviteeUserId) {
-        Project project = projectService.findProjectById(projectId, inviterUserId);
+        Project project = projectService.findPersonalProjectById(projectId, inviterUserId);
 
         boolean userMember = isUserMember(project.getId(), inviteeUserId);
 
@@ -59,7 +59,7 @@ public class BasicCollaborationService implements CollaborationService{
 
     @Override
     public void removeUserFromProjectById(Long projectId, Long projectOwnerId, Long memberId) {
-        Project project = projectService.findProjectById(projectId, projectOwnerId);
+        Project project = projectService.findPersonalProjectById(projectId, projectOwnerId);
 
         boolean userMember = isUserMember(project.getId(), memberId);
 

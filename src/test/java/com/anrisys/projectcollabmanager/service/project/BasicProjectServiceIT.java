@@ -1,6 +1,7 @@
 package com.anrisys.projectcollabmanager.service.project;
 
 import com.anrisys.projectcollabmanager.application.DBConfig;
+import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
@@ -63,7 +64,7 @@ public class BasicProjectServiceIT {
     @Test
     void createProject_withValidData_returnProject() {
         String projectTitle = "Test 1";
-        Project project = Project.create(projectTitle, sampleUser.getId());
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
 
         Project savedProject = projectService.create(project);
 
@@ -77,7 +78,7 @@ public class BasicProjectServiceIT {
     @DisplayName("Create project with same saved project")
     void createProject_withSameTitle_returnHasSameProjectNameException() {
         String projectTitle = "Test 1";
-        Project project = Project.create(projectTitle, sampleUser.getId());
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
 
         projectService.create(project);
 
@@ -95,11 +96,11 @@ public class BasicProjectServiceIT {
     @Test
     void findProjectById_ByOwner_returnSavedProject() {
         String projectTitle = "Test 1";
-        Project project = Project.create(projectTitle, sampleUser.getId());
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
 
         Project savedProject = projectService.create(project);
 
-        Project foundProject = projectService.findProjectById(savedProject.getId(), sampleUser.getId());
+        Project foundProject = projectService.findPersonalProjectById(savedProject.getId(), sampleUser.getId());
 
         Assertions.assertNotNull(foundProject);
         Assertions.assertEquals(savedProject.getId(), foundProject.getId());
@@ -111,7 +112,7 @@ public class BasicProjectServiceIT {
     @Test
     void findProjectById_ByNonOwner_returnUnsupportedOperationExecution() {
         String projectTitle = "Test 1";
-        Project project = Project.create(projectTitle, sampleUser.getId());
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
 
         Project savedProject = projectService.create(project);
 
@@ -120,7 +121,7 @@ public class BasicProjectServiceIT {
         UnsupportedOperationException exception =
                 Assertions.assertThrows(
                         UnsupportedOperationException.class,
-                        () ->projectService.findProjectById(savedProject.getId(), user2.getId())
+                        () ->projectService.findPersonalProjectById(savedProject.getId(), user2.getId())
                 );
 
         Assertions.assertNotNull(exception);

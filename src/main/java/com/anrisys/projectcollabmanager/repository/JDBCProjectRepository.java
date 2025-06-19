@@ -1,5 +1,7 @@
 package com.anrisys.projectcollabmanager.repository;
 
+import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
+import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
@@ -19,8 +21,8 @@ public class JDBCProjectRepository implements ProjectRepository{
     }
 
     @Override
-    public Project save(Project project) throws DataAccessException {
-        final String sql = "INSERT INTO projects(title, owner, description) VALUES(?, ?, ?)";
+    public Project save(ProjectCreateRequest request) throws DataAccessException {
+        final String sql = "INSERT INTO projects(title, owner, is_personal, description) VALUES(?, ?, ?, ?)";
 
         try(
                 Connection connection = dataSource.getConnection();
@@ -29,15 +31,16 @@ public class JDBCProjectRepository implements ProjectRepository{
                         Statement.RETURN_GENERATED_KEYS
                         );
             ) {
-            boolean hasSameProjectName = HasSameProjectName(project.getOwner(), project.getTitle());
 
-            if (hasSameProjectName) {
-                throw new HasSameProjectNameException();
+            statement.setString(1, request.title());
+            statement.setLong(2, request.owner());
+            statement.setBoolean(3, request.isPersonal());
+
+            if (request.description() != null) {
+                statement.setString(3, request.description());
+            } else {
+                statement.setNull(3, 1);
             }
-
-            statement.setString(1, project.getTitle());
-            statement.setLong(2, project.getOwner());
-            statement.setString(3, project.getDescription());
 
             int affectedRow = statement.executeUpdate();
 
@@ -45,15 +48,15 @@ public class JDBCProjectRepository implements ProjectRepository{
                 throw new DataAccessException("Failed to save new project");
             }
 
-            ResultSet resultSet = statement.getGeneratedKeys();
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if(!resultSet.next()) {
+                    throw new DataAccessException("Failed to retrieve generated project ID");
+                }
 
-            if(!resultSet.next()) {
-                throw new DataAccessException("Failed to retrieve generated project ID");
+                Long id = resultSet.getLong(1);
+
+                return findById(id).orElseThrow(() -> new DataAccessException("Failed to retrieve new project"));
             }
-
-            Long id = resultSet.getLong(1);
-
-            return findById(id).orElseThrow(() -> new DataAccessException("Failed to retrieve new project"));
 
         } catch (SQLException e) {
             throw new DataAccessException("Failed to create a project", e);
@@ -77,6 +80,7 @@ public class JDBCProjectRepository implements ProjectRepository{
                             resultSet.getLong("id"),
                             resultSet.getString("title"),
                             resultSet.getLong("owner"),
+                            resultSet.getBoolean("is_personal"),
                             resultSet.getString("description"),
                             resultSet.getTimestamp("created_at").toInstant(),
                             resultSet.getTimestamp("updated_at").toInstant()
@@ -107,6 +111,7 @@ public class JDBCProjectRepository implements ProjectRepository{
                             resultSet.getLong("id"),
                             resultSet.getString("title"),
                             resultSet.getLong("owner"),
+                            resultSet.getBoolean("is_personal"),
                             resultSet.getString("description"),
                             resultSet.getTimestamp("created_at").toInstant(),
                             resultSet.getTimestamp("updated_at").toInstant()
@@ -121,14 +126,14 @@ public class JDBCProjectRepository implements ProjectRepository{
     }
 
     @Override
-    public Optional<List<Project>> findByOwnerId(Long owner) throws DataAccessException {
+    public Optional<List<ProjectDTO>> findByOwnerId(Long owner) throws DataAccessException {
         final String sql = "SELECT * FROM projects WHERE owner = ?";
 
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
         )
         {
-            List<Project> projects = new ArrayList<>();
+            List<ProjectDTO> projects = new ArrayList<>();
 
             statement.setLong(1, owner);
 
@@ -136,13 +141,10 @@ public class JDBCProjectRepository implements ProjectRepository{
                 if(resultSet.next()) {
                     while(resultSet.next()) {
                         projects.add(
-                                Project.fromDB(
+                                new ProjectDTO(
                                         resultSet.getLong("id"),
                                         resultSet.getString("title"),
-                                        resultSet.getLong("owner"),
-                                        resultSet.getString("description"),
-                                        resultSet.getTimestamp("created_at").toInstant(),
-                                        resultSet.getTimestamp("updated_at").toInstant()
+                                        resultSet.getLong("owner")
                                 )
                         );
                     }

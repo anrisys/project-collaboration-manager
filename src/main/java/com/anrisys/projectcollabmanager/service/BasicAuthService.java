@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.service;
 
+import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.auth.EmailAlreadyRegisteredException;
@@ -31,7 +32,7 @@ public class BasicAuthService implements AuthService{
 
         User registeredUser = userRepository.save(user);
 
-        Project personalProject = Project.create("Personal", registeredUser.getId());
+        ProjectCreateRequest personalProject = new ProjectCreateRequest("Personal", registeredUser.getId(), null);
 
         projectService.create(personalProject);
 
