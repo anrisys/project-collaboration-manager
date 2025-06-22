@@ -18,6 +18,6 @@ public interface ProjectService {
     Project updateProject(Long projectId, Long clientId, ProjectUpdateRequest request);
     Project deleteProject(Long id, Long clientId);
 
-    void convertToCollaborative(Long projectId, Long userId);
-    void revertToPersonal(Long projectId, Long userId);
+    Project convertToCollaborative(Long projectId, Long userId);
+    Project revertToPersonal(Long projectId, Long userId);
 }

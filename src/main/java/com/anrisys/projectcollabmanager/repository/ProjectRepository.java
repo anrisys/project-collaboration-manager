@@ -15,6 +15,7 @@ public interface ProjectRepository {
     Optional<Project> findByTitle(String title) throws DataAccessException;
     Optional<List<ProjectDTO>> findByOwnerId(Long owner) throws DataAccessException;
     Project update(Long id, ProjectUpdateRequest project) throws DataAccessException;
+    Project changeProjectType(Long id, boolean personalization);
     Project delete(Long id) throws DataAccessException;
     boolean HasSameProjectName(Long owner, String title);
 }

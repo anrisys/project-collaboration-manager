@@ -85,7 +85,8 @@ public class CLIMenuManager {
                 2. Show list of projects
                 3. Show detail of a project
                 4. Update a project
-                5. Delete a project
+                5. Change project into collaborative project
+                6. Delete a project
                 0. Back
                 """
         );
@@ -96,7 +97,8 @@ public class CLIMenuManager {
             case 2 -> viewRegistry.projectView().listProjects();
             case 3 -> viewRegistry.projectView().showProject();
             case 4 -> viewRegistry.projectView().updateProject();
-            case 5 -> viewRegistry.projectView().deleteProject();
+            case 5 -> viewRegistry.projectView().convertCollaborationProject();
+            case 6 -> viewRegistry.projectView().deleteProject();
             default -> System.out.println("Please enter valid menu option");
         }
     }
@@ -110,6 +112,7 @@ public class CLIMenuManager {
                 3. Add user into project collaboration
                 4. Remove member from project collaboration
                 5. Leave a project collaboration
+                6. Convert into personal project
                 0. Back
                 """
         );
@@ -121,6 +124,7 @@ public class CLIMenuManager {
             case 3 -> viewRegistry.collaborationView().addUserToProjectCollaboration();
             case 4 -> viewRegistry.collaborationView().removeUserFromProject();
             case 5 -> viewRegistry.collaborationView().leaveProject();
+            case 6 -> viewRegistry.projectView().revertIntoPersonalProject();
             default -> System.out.println("Please enter valid menu option");
         }
     }

@@ -1,6 +1,8 @@
 package com.anrisys.projectcollabmanager.view;
 
 import com.anrisys.projectcollabmanager.application.ReadOnlyAppContext;
+import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
+import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.service.ProjectService;
@@ -13,7 +15,7 @@ import java.util.Map;
 public class ProjectView {
     private final ProjectService projectService;
     private final ReadOnlyAppContext context;
-    private final Map<Integer, Project> userProjects;
+    private final Map<Integer, ProjectDTO> userProjects;
     private boolean isUserProjectsDirty;
 
     public ProjectView(ProjectService projectService, ReadOnlyAppContext context) {
@@ -28,20 +30,21 @@ public class ProjectView {
 
         String description = descriptionPrompt();
 
-        Project project;
-        if (description.trim().isEmpty()) {
-            project = Project.create(title, context.getCurrentUser().getId());
+        ProjectCreateRequest project;
+        if (description.isEmpty()) {
+            project = new ProjectCreateRequest(title, context.getCurrentUser().getId(), true, null);
         } else {
-            project = Project.createWithDescription(title, context.getCurrentUser().getId(), description);
+            project = new ProjectCreateRequest(title, context.getCurrentUser().getId(), true, description);
         }
         isUserProjectsDirty = true;
-        System.out.println("Successfully create project with title: " + project.getTitle());
+
+        System.out.println("Successfully create project with title: " + project.title());
     }
 
     public void listProjects() {
         System.out.println("Your projects: ");
         if(isUserProjectsDirty) {
-            List<Project> projects = projectService.listProjectsByOwner(context.getCurrentUser().getId());
+            List<ProjectDTO> projects = projectService.listPersonalProjects(context.getCurrentUser().getId());
 
             for (int i = 0; i < projects.size(); i++) {
                 userProjects.put(i + 1, projects.get(i));
@@ -49,7 +52,7 @@ public class ProjectView {
 
             isUserProjectsDirty = false;
         } else {
-            userProjects.forEach(this::printProject);
+            userProjects.forEach(this::printProjectDTO);
         }
     }
 
@@ -58,9 +61,11 @@ public class ProjectView {
 
         int projectIndex = projectIndexPrompt();
 
-        Project project = userProjects.get(projectIndex);
+        ProjectDTO project = userProjects.get(projectIndex);
 
-        printProject(projectIndex, project);
+        Project projectById = projectService.findPersonalProjectById(project.id(), context.getCurrentUser().getId());
+
+        printProject(projectById);
     }
 
     public void updateProject() {
@@ -69,13 +74,13 @@ public class ProjectView {
         System.out.println("Choose project index you want to update: ");
         int projectIndex = projectIndexPrompt();
 
-        Project project = userProjects.get(projectIndex);
+        ProjectDTO project = userProjects.get(projectIndex);
         try {
             String newTitle = titlePrompt();
             String newDescription = descriptionPrompt();
             ProjectUpdateRequest request = new ProjectUpdateRequest(newTitle, newDescription);
 
-            projectService.updateProject(project.getId(), context.getCurrentUser().getId(), request);
+            projectService.updateProject(project.id(), context.getCurrentUser().getId(), request);
             isUserProjectsDirty = true;
         } catch (Exception e) {
             System.out.println("Can't update project. Please try again");
@@ -88,13 +93,33 @@ public class ProjectView {
         System.out.println("Choose project index you want to delete: ");
         int projectIndex = projectIndexPrompt();
 
-        Project project = userProjects.get(projectIndex);
+        ProjectDTO project = userProjects.get(projectIndex);
         try {
-            projectService.deleteProject(project.getId(), context.getCurrentUser().getId());
+            projectService.deleteProject(project.id(), context.getCurrentUser().getId());
             isUserProjectsDirty = true;
         } catch (Exception e) {
             System.out.println("Can't delete project. Please try again");
         }
+    }
+
+    public void convertCollaborationProject() {
+        int projectIndex = projectIndexPrompt();
+
+        projectService.convertToCollaborative(userProjects.get(projectIndex).id(), context.getCurrentUser().getId());
+
+        isUserProjectsDirty = true;
+
+        System.out.println("Successful change project into a collaborative project");
+    }
+
+    public void revertIntoPersonalProject() {
+        int projectIndex = projectIndexPrompt();
+
+        projectService.revertToPersonal(userProjects.get(projectIndex).id(), context.getCurrentUser().getId());
+
+        isUserProjectsDirty = true;
+
+        System.out.println("Successful revert project into a personal project");
     }
 
     private String titlePrompt() {
@@ -124,7 +149,14 @@ public class ProjectView {
         }
     }
 
-    private void printProject(int index ,Project project) {
-        System.out.printf("%d. %s. %n", index, project.getTitle());
+    private void printProjectDTO(int index , ProjectDTO project) {
+        System.out.printf("%d. %s. %n", index, project.title());
+    }
+
+    private void printProject(Project project) {
+        System.out.printf("Title: %s. %n Type: %s.%nDescription: %s.%n",
+                project.getTitle(),
+                project.isPersonal() ? "personal" : "collaborative",
+                project.getDescription());
     }
 }

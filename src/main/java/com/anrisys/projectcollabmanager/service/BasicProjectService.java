@@ -6,6 +6,7 @@ import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.core.UnauthorizedException;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
+import com.anrisys.projectcollabmanager.exception.projects.ProjectMembersExistException;
 import com.anrisys.projectcollabmanager.exception.projects.ProjectNotFoundException;
 import com.anrisys.projectcollabmanager.repository.ProjectRepository;
 
@@ -15,9 +16,11 @@ import java.util.Objects;
 public class BasicProjectService implements ProjectService{
 
     private final ProjectRepository repository;
+    private final CollaborationInfoService collaborationInfoService;
 
-    public BasicProjectService(ProjectRepository repository) {
+    public BasicProjectService(ProjectRepository repository, CollaborationInfoService collaborationInfoService) {
         this.repository = repository;
+        this.collaborationInfoService = collaborationInfoService;
     }
 
     @Override
@@ -88,13 +91,34 @@ public class BasicProjectService implements ProjectService{
     }
 
     @Override
-    public void convertToCollaborative(Long projectId, Long userId) {
+    public Project convertToCollaborative(Long projectId, Long userId) {
+        Project project = getProject(projectId);
 
+        isActionPermitted(project.getOwner(), userId);
+
+        if (!project.isPersonal()) {
+            throw new IllegalStateException("Project has been already collaborative.");
+        }
+
+        return repository.changeProjectType(project.getId(), false);
     }
 
     @Override
-    public void revertToPersonal(Long projectId, Long userId) {
+    public Project revertToPersonal(Long projectId, Long userId) {
+        Project project = getProject(projectId);
+        boolean hasCollaborators = collaborationInfoService.hasCollaborators(projectId);
 
+        isActionPermitted(project.getOwner(), userId);
+
+        if (project.isPersonal()) {
+            throw new IllegalStateException("Project has been already personal.");
+        }
+
+        if(hasCollaborators) {
+            throw new ProjectMembersExistException(projectId);
+        }
+
+        return repository.changeProjectType(project.getId(), true);
     }
 
     private void isActionPermitted(Long projectOwner, Long clientId) {

@@ -5,7 +5,6 @@ import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
-import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -196,6 +195,31 @@ public class JDBCProjectRepository implements ProjectRepository{
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Project changeProjectType(Long id, boolean type) {
+        final String sql = "UPDATE projects SET is_personal = ? WHERE id = ?";
+        final String exceptionMessage = "Failed to change type of project with id : " + id;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setBoolean(1, type);
+            statement.setLong(2, id);
+
+            int affectedRow = statement.executeUpdate();
+
+            if (affectedRow != 1) {
+                throw new DataAccessException(exceptionMessage);
+            }
+
+            return findById(id).orElseThrow(
+                    () -> new DataAccessException(exceptionMessage)
+            );
+        } catch (SQLException e) {
+            throw new DataAccessException(exceptionMessage, e);
         }
     }
 

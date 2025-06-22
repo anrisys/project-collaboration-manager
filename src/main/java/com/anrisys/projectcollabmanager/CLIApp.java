@@ -17,22 +17,24 @@ public class CLIApp {
         try {
             DataSource dataSource = DBConfig.getDataSource();
             AppContext appContext = new AppContext();
-            // Project Feature
-            ProjectRepository projectRepository = new JDBCProjectRepository(dataSource);
-            ProjectService projectService = new BasicProjectService(projectRepository);
-            ProjectView projectView = new ProjectView(projectService, appContext);
 
-            // Auth Feature
+            // Repository layer
             UserRepository userRepository = new JDBCUserRepository(dataSource);
-            AuthService authService = new BasicAuthService(userRepository, projectService);
-            AuthView authView = new AuthView(authService);
-
-            // User service
-            UserService userService = new BasicUserService(userRepository);
-
-            // Collaboration Feature
+            ProjectRepository projectRepository = new JDBCProjectRepository(dataSource);
             CollaborationRepository collaborationRepository = new JDBCCollaborationRepository(dataSource);
-            CollaborationService collaborationService = new BasicCollaborationService(collaborationRepository, projectService, userService);
+
+
+            // Service layer
+            UserService userService = new BasicUserService(userRepository);
+            BasicCollaborationService collaborationService = new BasicCollaborationService(collaborationRepository, null, null);
+            ProjectService projectService = new BasicProjectService(projectRepository, collaborationService);
+            AuthService authService = new BasicAuthService(userRepository, projectService);
+
+            collaborationService.setProjectService(projectService);
+
+            // View layer
+            AuthView authView = new AuthView(authService);
+            ProjectView projectView = new ProjectView(projectService, appContext);
             CollaborationView collaborationView = new CollaborationView(collaborationService, appContext);
 
             ViewRegistry viewRegistry = new ViewRegistry(authView, projectView, collaborationView);

@@ -1,13 +1,8 @@
 package com.anrisys.projectcollabmanager.service.auth;
 
 import com.anrisys.projectcollabmanager.application.DBConfig;
-import com.anrisys.projectcollabmanager.repository.JDBCProjectRepository;
-import com.anrisys.projectcollabmanager.repository.JDBCUserRepository;
-import com.anrisys.projectcollabmanager.repository.ProjectRepository;
-import com.anrisys.projectcollabmanager.repository.UserRepository;
-import com.anrisys.projectcollabmanager.service.BasicAuthService;
-import com.anrisys.projectcollabmanager.service.BasicProjectService;
-import com.anrisys.projectcollabmanager.service.ProjectService;
+import com.anrisys.projectcollabmanager.repository.*;
+import com.anrisys.projectcollabmanager.service.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,15 +16,22 @@ public class BaseBasicAuthServiceIT {
     protected static DataSource dataSource;
     protected static UserRepository userRepository;
     protected static ProjectRepository projectRepository;
+    protected static CollaborationRepository collaborationRepository;
+    protected static BasicCollaborationService collaborationService;
     protected static ProjectService projectService;
     protected static BasicAuthService authService;
+    protected static UserService userService;
 
     @BeforeAll
     static void beforeAll() {
         dataSource = DBConfig.getDataSource();
         userRepository = new JDBCUserRepository(dataSource);
         projectRepository = new JDBCProjectRepository(dataSource);
-        projectService = new BasicProjectService(projectRepository);
+        collaborationRepository = new JDBCCollaborationRepository(dataSource);
+        userService = new BasicUserService(userRepository);
+        collaborationService = new BasicCollaborationService(collaborationRepository, null, userService);
+        projectService = new BasicProjectService(projectRepository, collaborationService);
+        collaborationService.setProjectService(projectService);
         authService = new BasicAuthService(userRepository, projectService);
     }
 

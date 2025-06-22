@@ -12,15 +12,19 @@ import com.anrisys.projectcollabmanager.repository.CollaborationRepository;
 
 import java.util.List;
 
-public class BasicCollaborationService implements CollaborationService{
+public class BasicCollaborationService implements CollaborationService, CollaborationInfoService{
     private final CollaborationRepository collaborationRepository;
-    private final ProjectService projectService;
+    private ProjectService projectService;
     private final UserService userService;
 
     public BasicCollaborationService(CollaborationRepository repository, ProjectService projectService, UserService userService) {
         this.collaborationRepository = repository;
         this.projectService = projectService;
         this.userService = userService;
+    }
+
+    public void setProjectService(ProjectService projectService) {
+        this.projectService = projectService;
     }
 
     @Override
@@ -87,5 +91,10 @@ public class BasicCollaborationService implements CollaborationService{
         if (!exists) throw new CollaborationNotFoundException();
 
         collaborationRepository.removeUserFromProject(projectId, userId);
+    }
+
+    @Override
+    public boolean hasCollaborators(Long projectId) {
+        return collaborationRepository.findMembersByProjectId(projectId).isPresent();
     }
 }
