@@ -1,8 +1,9 @@
 package com.anrisys.projectcollabmanager.view;
 
-import com.anrisys.projectcollabmanager.application.ReadOnlyAppContext;
+import com.anrisys.projectcollabmanager.application.AppContext;
 import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.UserDTO;
+import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.service.CollaborationService;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
@@ -12,11 +13,11 @@ import java.util.Map;
 
 public class CollaborationView {
     private final CollaborationService collaborationService;
-    private final ReadOnlyAppContext context;
+    private final AppContext context;
     private final Map<Integer, ProjectDTO> projectCollaborations;
     private boolean isProjectCollaborationsDirty;
 
-    public CollaborationView(CollaborationService collaborationService, ReadOnlyAppContext context) {
+    public CollaborationView(CollaborationService collaborationService, AppContext context) {
         this.collaborationService = collaborationService;
         this.context = context;
         this.projectCollaborations = new HashMap<>();
@@ -38,6 +39,14 @@ public class CollaborationView {
         } else {
             projectCollaborations.forEach(this::printCollaborationProject);
         }
+    }
+
+    public void showCollaborationProject() {
+        System.out.println("Choose project index: ");
+
+        int projectIndex = projectCollaborationIndexPrompt();
+        Project project = collaborationService.showCollaborationProject(projectCollaborations.get(projectIndex).id(), context.getCurrentUser().getId());
+        printProjectDetail(project);
     }
 
     public void addUserToProjectCollaboration() {
@@ -63,6 +72,16 @@ public class CollaborationView {
         System.out.printf("Successful add user with email %s to project collaboration%n",
                 projectCollaborations.get(projectIndex).title()
         );
+    }
+
+    public void goToProject() {
+        listMyCollaborations();
+
+        int projectIndex = projectIndexPrompt();
+
+        ProjectDTO projectDTO = projectCollaborations.get(projectIndex);
+
+        context.setCurrentProjectState(projectDTO);
     }
 
     public void listProjectMembers() {
@@ -115,7 +134,24 @@ public class CollaborationView {
         System.out.printf("%d. %s. %n", index, projectDTO.title());
     }
 
+    private void printProjectDetail(Project project) {
+        System.out.printf("Title: %s.%nDescription: %s.",
+                project.getTitle(), project.getDescription());
+    }
+
     private void printProjectMember(int index, UserDTO userDTO) {
         System.out.printf("%d. %s. %n", index, userDTO.email() );
+    }
+
+    private int projectIndexPrompt() {
+        while(true) {
+            int index = CLIInputUtil.requestIntInput();
+
+            if (index > 0 && index <= projectCollaborations.size()) {
+                return index;
+            }
+
+            System.out.println("Invalid project index.");
+        }
     }
 }

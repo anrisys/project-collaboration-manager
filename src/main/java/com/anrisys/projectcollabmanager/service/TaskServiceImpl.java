@@ -1,8 +1,6 @@
 package com.anrisys.projectcollabmanager.service;
 
-import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
-import com.anrisys.projectcollabmanager.dto.TaskDTO;
-import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
+import com.anrisys.projectcollabmanager.dto.*;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.exception.core.UnauthorizedException;
 import com.anrisys.projectcollabmanager.exception.tasks.TaskAlreadyExistsException;
@@ -10,19 +8,20 @@ import com.anrisys.projectcollabmanager.exception.tasks.TaskNotFoundException;
 import com.anrisys.projectcollabmanager.repository.TaskRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 public class TaskServiceImpl implements TaskService{
     private final TaskRepository taskRepository;
+    private final UserService userService;
     private final CollaborationService collaborationService;
 
-    public TaskServiceImpl(TaskRepository taskRepository, CollaborationService collaborationService) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserService userService, CollaborationService collaborationService) {
         this.taskRepository = taskRepository;
+        this.userService = userService;
         this.collaborationService = collaborationService;
     }
 
     @Override
-    public Task create(CreateTaskRequest task) {
+    public Task create(CreateTaskRequest task, Long clientId) {
         boolean isTaskAlreadyExist = taskRepository.existsByProjectIdAndTitle(task.projectId(), task.title());
 
         if(isTaskAlreadyExist) {
@@ -30,6 +29,21 @@ public class TaskServiceImpl implements TaskService{
         }
 
         return taskRepository.save(task);
+    }
+
+    @Override
+    public Task createWithEmailAssignee(CreateTaskWithEmailAssignee request, Long clientId) {
+        UserDTO userDTO = userService.findByEmail(request.emailAssignee());
+
+        boolean isUserMember = collaborationService.isUserMember(request.projectId(), userDTO.id());
+
+        if (!isUserMember) {
+            throw new IllegalArgumentException("Assignee is not part of project");
+        }
+
+        var requestData = new CreateTaskRequest(request.title(), request.shortDescription(), request.projectId(), userDTO.id());
+
+        return create(requestData, clientId);
     }
 
     @Override
@@ -41,9 +55,6 @@ public class TaskServiceImpl implements TaskService{
         boolean userHasPermission = collaborationService.isUserMember(task.getProjectId(), clientId);
 
         if (!userHasPermission) throw new UnauthorizedException();
-
-        // What if the task isn't in collaboration project?
-        // Should every personal project count/saved into collaboration? --> circular dependency
 
         return task;
     }

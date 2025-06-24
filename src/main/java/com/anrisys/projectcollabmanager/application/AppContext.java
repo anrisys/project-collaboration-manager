@@ -1,16 +1,26 @@
 package com.anrisys.projectcollabmanager.application;
 
+import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.ExitAppException;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 
 public class AppContext implements ReadOnlyAppContext {
     public enum State {
-        START_MENU, MAIN_MENU,PROJECT_MENU, COLLABORATION_MENU, TASK_MENU
+        START_MENU, MAIN_MENU, PERSONAL_PROJECT_MENU, COLLABORATION_MENU, TASK_MENU
     }
 
     private User currentUser;
     private State currentState = State.START_MENU;
+    private ProjectDTO currentProjectState = null;
+
+    public ProjectDTO getCurrentProjectState() {
+        return currentProjectState;
+    }
+
+    public void setCurrentProjectState(ProjectDTO currentProjectState) {
+        this.currentProjectState = currentProjectState;
+    }
 
     public User getCurrentUser() {
         return currentUser;

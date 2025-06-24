@@ -143,6 +143,7 @@ public class JDBCProjectRepository implements ProjectRepository{
                                 new ProjectDTO(
                                         resultSet.getLong("id"),
                                         resultSet.getString("title"),
+                                        resultSet.getBoolean("is_personal"),
                                         resultSet.getLong("owner")
                                 )
                         );

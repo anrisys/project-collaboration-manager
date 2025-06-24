@@ -1,6 +1,7 @@
 package com.anrisys.projectcollabmanager.service;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
+import com.anrisys.projectcollabmanager.dto.CreateTaskWithEmailAssignee;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
 import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
@@ -8,7 +9,8 @@ import com.anrisys.projectcollabmanager.entity.Task;
 import java.util.List;
 
 public interface TaskService {
-    Task create(CreateTaskRequest task);
+    Task create(CreateTaskRequest task, Long clientId);
+    Task createWithEmailAssignee(CreateTaskWithEmailAssignee request, Long clientId);
     Task getTaskById(Long taskId, Long clientId);
     Task getTaskByTitle(String title, Long clientId);
     Task deleteById(Long projectId, Long clientId);

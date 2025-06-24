@@ -8,6 +8,7 @@ import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.exception.collaborations.CollaborationMembersNotFoundException;
 import com.anrisys.projectcollabmanager.exception.collaborations.CollaborationNotFoundException;
 import com.anrisys.projectcollabmanager.exception.collaborations.UserAlreadyCollaborationMemberException;
+import com.anrisys.projectcollabmanager.exception.core.UnauthorizedException;
 import com.anrisys.projectcollabmanager.repository.CollaborationRepository;
 
 import java.util.List;
@@ -39,6 +40,17 @@ public class BasicCollaborationService implements CollaborationService, Collabor
         return collaborationRepository.findMembersByProjectId(projectId).orElseThrow(
                 CollaborationMembersNotFoundException::new
         );
+    }
+
+    @Override
+    public Project showCollaborationProject(Long projectId, Long userId) {
+        Project project = projectService.findProjectById(projectId);
+
+        boolean userMember = isUserMember(project.getId(), userId);
+
+        if (!userMember) throw new UnauthorizedException();
+
+        return project;
     }
 
     @Override

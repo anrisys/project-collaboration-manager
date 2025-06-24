@@ -1,6 +1,6 @@
 package com.anrisys.projectcollabmanager.view;
 
-import com.anrisys.projectcollabmanager.application.ReadOnlyAppContext;
+import com.anrisys.projectcollabmanager.application.AppContext;
 import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
 import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
@@ -12,13 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProjectView {
+public class ProjectView implements ProjectViewInfo {
     private final ProjectService projectService;
-    private final ReadOnlyAppContext context;
+    private final AppContext context;
     private final Map<Integer, ProjectDTO> userProjects;
     private boolean isUserProjectsDirty;
 
-    public ProjectView(ProjectService projectService, ReadOnlyAppContext context) {
+    public ProjectView(ProjectService projectService, AppContext context) {
         this.projectService = projectService;
         this.context = context;
         this.userProjects = new HashMap<>();
@@ -69,33 +69,39 @@ public class ProjectView {
     }
 
     public void updateProject() {
+        ProjectDTO projectDTO = getProjectDTO("Choose project index to update: ");
+        String newTitle = titlePrompt();
+        String newDescription = descriptionPrompt();
+        ProjectUpdateRequest request = new ProjectUpdateRequest(newTitle, newDescription);
+
+        projectService.updateProject(projectDTO.id(), context.getCurrentUser().getId(), request);
+        isUserProjectsDirty = true;
+    }
+
+    @Override
+    public ProjectDTO getProjectDTO(String x) {
         listProjects();
 
-        System.out.println("Choose project index you want to update: ");
+        System.out.println(x);
         int projectIndex = projectIndexPrompt();
 
-        ProjectDTO project = userProjects.get(projectIndex);
-        try {
-            String newTitle = titlePrompt();
-            String newDescription = descriptionPrompt();
-            ProjectUpdateRequest request = new ProjectUpdateRequest(newTitle, newDescription);
+        return userProjects.get(projectIndex);
+    }
 
-            projectService.updateProject(project.id(), context.getCurrentUser().getId(), request);
-            isUserProjectsDirty = true;
-        } catch (Exception e) {
-            System.out.println("Can't update project. Please try again");
-        }
+    public void goToProject() {
+        listProjects();
+
+        int projectIndex = projectIndexPrompt();
+
+        ProjectDTO projectDTO = userProjects.get(projectIndex);
+
+        context.setCurrentProjectState(projectDTO);
     }
 
     public void deleteProject() {
-        listProjects();
-
-        System.out.println("Choose project index you want to delete: ");
-        int projectIndex = projectIndexPrompt();
-
-        ProjectDTO project = userProjects.get(projectIndex);
+        ProjectDTO projectDTO = getProjectDTO("Choose project index you want to delete: ");
         try {
-            projectService.deleteProject(project.id(), context.getCurrentUser().getId());
+            projectService.deleteProject(projectDTO.id(), context.getCurrentUser().getId());
             isUserProjectsDirty = true;
         } catch (Exception e) {
             System.out.println("Can't delete project. Please try again");

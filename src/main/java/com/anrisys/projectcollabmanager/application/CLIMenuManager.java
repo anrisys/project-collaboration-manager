@@ -20,7 +20,7 @@ public class CLIMenuManager {
                 switch (context.getCurrentState()) {
                     case START_MENU -> showStartMenu();
                     case MAIN_MENU -> showMainMenu();
-                    case PROJECT_MENU -> showProjectMenu();
+                    case PERSONAL_PROJECT_MENU -> showPersonalProjectMenu();
                     case COLLABORATION_MENU -> showCollaborationMenu();
                     case TASK_MENU -> showTaskMenu();
                     default -> throw new ExitAppException();
@@ -63,30 +63,31 @@ public class CLIMenuManager {
         System.out.println(
                 """
                 Choose menu:
-                1. Project menu
-                2. Collaboration menu
+                1. Personal projects menu
+                2. Collaboration projects menu
                 0. Log out
                 """
         );
         int action = CLIInputUtil.requestIntInput();
         switch (action) {
             case 0 -> context.logout();
-            case 1 -> context.setCurrentState(AppContext.State.PROJECT_MENU);
-            case 2 -> context.setCurrentState(AppContext.State.TASK_MENU);
+            case 1 -> context.setCurrentState(AppContext.State.PERSONAL_PROJECT_MENU);
+            case 2 -> context.setCurrentState(AppContext.State.COLLABORATION_MENU);
             default -> System.out.println("Please enter valid menu option");
         }
     }
 
-    private void showProjectMenu() {
+    private void showPersonalProjectMenu() {
         System.out.println(
                 """
                 Choose actions:
-                1. Create new project
+                1. Create new personal project
                 2. Show list of projects
                 3. Show detail of a project
                 4. Update a project
                 5. Change project into collaborative project
                 6. Delete a project
+                7. Go to a project
                 0. Back
                 """
         );
@@ -99,6 +100,10 @@ public class CLIMenuManager {
             case 4 -> viewRegistry.projectView().updateProject();
             case 5 -> viewRegistry.projectView().convertCollaborationProject();
             case 6 -> viewRegistry.projectView().deleteProject();
+            case 7 -> {
+                viewRegistry.projectView().goToProject();
+                context.setCurrentState(AppContext.State.TASK_MENU);
+            }
             default -> System.out.println("Please enter valid menu option");
         }
     }
@@ -108,11 +113,13 @@ public class CLIMenuManager {
                 """
                 Choose actions:
                 1. Show list collaboration projects
-                2. Show list collaboration project members
-                3. Add user into project collaboration
-                4. Remove member from project collaboration
-                5. Leave a project collaboration
-                6. Convert into personal project
+                2. Show collaboration project
+                3. Show list collaboration project members
+                4. Add user into project collaboration
+                5. Remove member from project collaboration
+                6. Leave a project collaboration
+                7. Convert into personal project
+                8. Go to a project
                 0. Back
                 """
         );
@@ -121,15 +128,50 @@ public class CLIMenuManager {
             case 0 -> context.setCurrentState(AppContext.State.MAIN_MENU);
             case 1 -> viewRegistry.collaborationView().listMyCollaborations();
             case 2 -> viewRegistry.collaborationView().listProjectMembers();
-            case 3 -> viewRegistry.collaborationView().addUserToProjectCollaboration();
-            case 4 -> viewRegistry.collaborationView().removeUserFromProject();
-            case 5 -> viewRegistry.collaborationView().leaveProject();
-            case 6 -> viewRegistry.projectView().revertIntoPersonalProject();
+            case 3 -> viewRegistry.collaborationView().showCollaborationProject();
+            case 4 -> viewRegistry.collaborationView().addUserToProjectCollaboration();
+            case 5 -> viewRegistry.collaborationView().removeUserFromProject();
+            case 6 -> viewRegistry.collaborationView().leaveProject();
+            case 7 -> viewRegistry.projectView().revertIntoPersonalProject();
+            case 8 -> {
+                viewRegistry.collaborationView().goToProject();
+                context.setCurrentState(AppContext.State.TASK_MENU);
+            }
             default -> System.out.println("Please enter valid menu option");
         }
     }
 
     private void showTaskMenu() {
-        System.out.println("This is task menu");
+        System.out.println(
+                """
+                Choose actions:
+                1. Create new task
+                2. Show tasks list
+                3. Show task
+                4. Update a task
+                5. Delete a task
+                6. Find task
+                7. Assign a task
+                8. Change task assignee
+                0. Back
+                """
+        );
+        int action = CLIInputUtil.requestIntInput();
+        switch (action) {
+            case 0 -> {
+                if (context.getCurrentProjectState().isPersonal()) {
+                    context.setCurrentState(AppContext.State.PERSONAL_PROJECT_MENU);
+                } else {
+                    context.setCurrentState(AppContext.State.COLLABORATION_MENU);
+                }
+                context.setCurrentProjectState(null);
+            }
+            case 1 -> viewRegistry.taskView().create();
+            case 2 -> viewRegistry.taskView().listTask();
+            case 3 -> viewRegistry.taskView().showTask();
+            case 4 -> viewRegistry.projectView().updateProject();
+            case 5 -> viewRegistry.projectView().convertCollaborationProject();
+            default -> System.out.println("Please enter valid menu option");
+        }
     }
 }
