@@ -31,7 +31,7 @@ public class CLIApp {
                     collaborationRepository, null, null);
             ProjectService projectService = new BasicProjectService(projectRepository, collaborationService);
             AuthService authService = new BasicAuthService(userRepository, projectService);
-            TaskService taskService = new TaskServiceImpl(taskRepository, userService, collaborationService);
+            TaskService taskService = new TaskServiceImpl(taskRepository, userService, collaborationService, projectService);
 
             collaborationService.setProjectService(projectService);
 

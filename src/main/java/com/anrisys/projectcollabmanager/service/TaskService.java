@@ -13,13 +13,13 @@ public interface TaskService {
     Task createWithEmailAssignee(CreateTaskWithEmailAssignee request, Long clientId);
     Task getTaskById(Long taskId, Long clientId);
     Task getTaskByTitle(String title, Long clientId);
-    Task deleteById(Long projectId, Long clientId);
+    Task deleteById(Long taskId, Long clientId);
 
     List<TaskDTO> getAllTaskByProjectId(Long projectId, Long clientId);
-    List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId);
+    List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId, Long userId);
     List<TaskDTO> getAllTaskByProjectIdAndStatus(Long projectId, Long clientId);
 
     Task update(Long projectId, Long clientId, TaskUpdateRequest request);
-    Task changeAssignee(Long taskId, Long clientId, Long assigneeId);
+    Task changeAssignee(Long taskId, Long clientId, String assigneeEmail);
     Task updateStatus(Long taskId, Long clientId, Task.Status status);
 }

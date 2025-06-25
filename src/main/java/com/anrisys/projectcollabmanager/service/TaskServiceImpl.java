@@ -1,6 +1,7 @@
 package com.anrisys.projectcollabmanager.service;
 
 import com.anrisys.projectcollabmanager.dto.*;
+import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.exception.core.UnauthorizedException;
 import com.anrisys.projectcollabmanager.exception.tasks.TaskAlreadyExistsException;
@@ -8,16 +9,19 @@ import com.anrisys.projectcollabmanager.exception.tasks.TaskNotFoundException;
 import com.anrisys.projectcollabmanager.repository.TaskRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TaskServiceImpl implements TaskService{
     private final TaskRepository taskRepository;
     private final UserService userService;
     private final CollaborationService collaborationService;
+    private final ProjectService projectService;
 
-    public TaskServiceImpl(TaskRepository taskRepository, UserService userService, CollaborationService collaborationService) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserService userService, CollaborationService collaborationService, ProjectService projectService) {
         this.taskRepository = taskRepository;
         this.userService = userService;
         this.collaborationService = collaborationService;
+        this.projectService = projectService;
     }
 
     @Override
@@ -52,9 +56,9 @@ public class TaskServiceImpl implements TaskService{
                 () -> new TaskNotFoundException(taskId)
         );
 
-        boolean userHasPermission = collaborationService.isUserMember(task.getProjectId(), clientId);
+        boolean userProjectMember = isUserProjectMember(task.getProjectId(), clientId);
 
-        if (!userHasPermission) throw new UnauthorizedException();
+        if (!userProjectMember) throw new UnauthorizedException();
 
         return task;
     }
@@ -65,18 +69,36 @@ public class TaskServiceImpl implements TaskService{
     }
 
     @Override
-    public Task deleteById(Long projectId, Long clientId) {
-        return null;
+    public Task deleteById(Long taskId, Long clientId) {
+        Task task = getTaskById(taskId, clientId);
+
+        boolean userProjectOwner = isUserProjectOwner(clientId, task);
+
+        if (!userProjectOwner) throw new UnauthorizedException();
+
+        return taskRepository.deleteById(taskId);
     }
 
     @Override
     public List<TaskDTO> getAllTaskByProjectId(Long projectId, Long clientId) {
-        return List.of();
+        boolean userProjectMember = isUserProjectMember(projectId, clientId);
+
+        if (!userProjectMember) throw new UnauthorizedException();
+
+        return taskRepository.findAllByProjectId(projectId).orElseThrow(
+                TaskNotFoundException::new
+        );
     }
 
     @Override
-    public List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId) {
-        return List.of();
+    public List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId, Long userId) {
+        boolean userProjectMember = isUserProjectMember(projectId, userId);
+
+        if (!userProjectMember) throw new UnauthorizedException();
+
+        return taskRepository.findAllByProjectIdAndAssigneeId(projectId, userId).orElseThrow(
+                TaskNotFoundException::new
+        );
     }
 
     @Override
@@ -90,12 +112,50 @@ public class TaskServiceImpl implements TaskService{
     }
 
     @Override
-    public Task changeAssignee(Long taskId, Long clientId, Long assigneeId) {
-        return null;
+    public Task changeAssignee(Long taskId, Long clientId, String assigneeEmail) {
+        Task taskById = getTaskById(taskId, clientId);
+
+        boolean projectOwner = isUserProjectOwner(clientId, taskById);
+
+        if (!projectOwner) throw new UnauthorizedException();
+
+        UserDTO userDTO = userService.findByEmail(assigneeEmail);
+
+        boolean projectMember = isUserProjectMember(taskById.getProjectId(), userDTO.id());
+
+        if (!projectMember) throw new IllegalArgumentException("Assignee is not part of the project.");
+
+        return taskRepository.updateAssignee(taskId, userDTO.id());
     }
 
     @Override
     public Task updateStatus(Long taskId, Long clientId, Task.Status status) {
-        return null;
+        Task taskById = getTaskById(taskId, clientId);
+
+        boolean userAssignee = isUserAssignee(taskId, clientId);
+
+        boolean userProjectOwner = isUserProjectOwner(clientId, taskById);
+
+        if (!userAssignee && !userProjectOwner) {
+            throw new UnauthorizedException();
+        }
+
+        return taskRepository.updateStatus(taskId, status);
+    }
+
+    private boolean isUserAssignee(Long taskId, Long clientId) {
+        Task taskById = getTaskById(taskId, clientId);
+
+        return !Objects.equals(taskById.getAssigneeId(), clientId);
+    }
+
+    private boolean isUserProjectOwner(Long clientId, Task task) {
+        Project project = projectService.findProjectById(task.getProjectId());
+
+        return Objects.equals(project.getOwner(), clientId);
+    }
+
+    private boolean isUserProjectMember(Long projectId, Long clientId) {
+        return collaborationService.isUserMember(projectId, clientId);
     }
 }

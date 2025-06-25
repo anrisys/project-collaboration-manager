@@ -11,20 +11,23 @@ import com.anrisys.projectcollabmanager.util.CLIInputUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.anrisys.projectcollabmanager.view.AuthView.emailRegexPattern;
 
 public class TaskView {
     private final TaskService taskService;
     private final AppContext appContext;
-    private Map<Integer, TaskDTO> tasksList;
-    private boolean isTasksListDirty;
+    private Map<Integer, TaskDTO> allProjectTasks;
+    private boolean isAllProjectTasksDirty;
+    private Map<Integer, TaskDTO> myTasksList;
+    private boolean isMyTasksListDirty;
 
     public TaskView(AppContext appContext, TaskService taskService) {
         this.appContext = appContext;
         this.taskService = taskService;
-        this.tasksList = new HashMap<>();
-        this.isTasksListDirty = false;
+        this.allProjectTasks = new HashMap<>();
+        this.isAllProjectTasksDirty = false;
     }
 
     public void create() {
@@ -55,30 +58,98 @@ public class TaskView {
     }
 
     public void listTask() {
-        if (isTasksListDirty) {
+        if (isAllProjectTasksDirty) {
             List<TaskDTO> allTaskByProjectId = taskService.getAllTaskByProjectId(
                     appContext.getCurrentProjectState().id(),
                     appContext.getCurrentUser().getId()
             );
 
             for (int i = 0; i < allTaskByProjectId.size(); i++) {
-                tasksList.put(i + 1, allTaskByProjectId.get(i));
+                allProjectTasks.put(i + 1, allTaskByProjectId.get(i));
             }
         }
 
-        printTasksList();
+        printTasksList(allProjectTasks);
+    }
+
+    public void myTaskList() {
+        if (isMyTasksListDirty) {
+            List<TaskDTO> allTaskByProjectId = taskService.getAllTaskByProjectIdAndAssigneeId(
+                    appContext.getCurrentProjectState().id(),
+                    appContext.getCurrentUser().getId()
+            );
+
+            for (int i = 0; i < allTaskByProjectId.size(); i++) {
+                allProjectTasks.put(i + 1, allTaskByProjectId.get(i));
+            }
+        }
+
+        printTasksList(myTasksList);
     }
 
     public void showTask() {
-        Integer projectIndex = projectIdxPrompt();
+        Integer projectIndex = taskIdxPrompt("x");
 
-        Task task = taskService.getTaskById(tasksList.get(projectIndex).id(), appContext.getCurrentUser().getId());
+        Task task = taskService.getTaskById(allProjectTasks.get(projectIndex).id(), appContext.getCurrentUser().getId());
 
         printTask(task);
     }
 
-    private void printTasksList() {
-        tasksList.forEach(((integer, taskDTO) ->
+    public void deleteTask() {
+        Integer projectIndex = taskIdxPrompt("x");
+
+        Task task = taskService.deleteById(allProjectTasks.get(projectIndex).id(), appContext.getCurrentUser().getId());
+
+        isAllProjectTasksDirty = true;
+        isMyTasksListDirty = true;
+        System.out.println("Success delete task with title : " + task.getTitle());
+    }
+
+    public void changeTaskStatus() {
+        Integer projectIndex = taskIdxPrompt("personal");
+        TaskDTO taskDTO = myTasksList.get(projectIndex);
+        Task.Status status = promptTaskStatus(taskDTO);
+
+        Task task = taskService.updateStatus(taskDTO.id(), appContext.getCurrentUser().getId(), status);
+        System.out.println("Successful update task status as : " + task.getStatus().name());
+    }
+
+    public void updateTask() {}
+
+    public void findTask() {}
+
+    public void changeTaskAssignee() {
+        Integer taskIdx = taskIdxPrompt("x");
+
+        TaskDTO taskDTO = allProjectTasks.get(taskIdx);
+
+        String assigneeEmail = promptEmailUser();
+
+        Task changedAssignee = taskService.changeAssignee(taskDTO.id(), appContext.getCurrentUser().getId(), assigneeEmail);
+
+        System.out.println("Successful change assignee of task : " + changedAssignee.getTitle());
+    }
+
+    private Task.Status promptTaskStatus(TaskDTO taskDTO) {
+        while (true) {
+            System.out.println("""
+                    Choose task new status:\s
+                    1. TODO
+                    2. IN_PROGRESS
+                    3. DONE
+                   \s""");
+            int input = CLIInputUtil.requestIntInput();
+            switch (input) {
+                case 1 : return Task.Status.TODO;
+                case 2 : return Task.Status.IN_PROGRESS;
+                case 3 : return Task.Status.DONE;
+                default : System.out.println("Invalid input, please choose valid status");
+            }
+        }
+    }
+
+    private void printTasksList(Map<Integer, TaskDTO> tasks) {
+        tasks.forEach(((integer, taskDTO) ->
                 System.out.printf(
                         "%d. %s %s.%n%n", integer,
                         taskDTO.title(),
@@ -119,13 +190,18 @@ public class TaskView {
         return CLIInputUtil.requestStringInput();
     }
 
-    private Integer projectIdxPrompt() {
-        listTask();
+    private Integer taskIdxPrompt(String listType) {
+        int listSize;
+        if (Objects.equals(listType, "personal")) {
+            listSize = myTasksList.size();
+        } else {
+            listSize = allProjectTasks.size();
+        }
         while (true) {
             System.out.println("Choose project index: ");
             int idx = CLIInputUtil.requestIntInput();
 
-            if (idx > 0 && idx <= tasksList.size()) {
+            if (idx > 0 && idx <= listSize) {
                 return idx;
             }
 

@@ -146,13 +146,14 @@ public class CLIMenuManager {
                 """
                 Choose actions:
                 1. Create new task
-                2. Show tasks list
-                3. Show task
-                4. Update a task
-                5. Delete a task
-                6. Find task
-                7. Assign a task
+                2. Show all tasks
+                3. Show my tasks
+                4. Show task
+                5. Update a task
+                6. Delete a task
+                7. Find task
                 8. Change task assignee
+                9. Update task status
                 0. Back
                 """
         );
@@ -168,9 +169,13 @@ public class CLIMenuManager {
             }
             case 1 -> viewRegistry.taskView().create();
             case 2 -> viewRegistry.taskView().listTask();
-            case 3 -> viewRegistry.taskView().showTask();
-            case 4 -> viewRegistry.projectView().updateProject();
-            case 5 -> viewRegistry.projectView().convertCollaborationProject();
+            case 3 -> viewRegistry.taskView().myTaskList();
+            case 4 -> viewRegistry.taskView().showTask();
+            case 5 -> viewRegistry.taskView().updateTask();
+            case 6 -> viewRegistry.taskView().deleteTask();
+            case 7 -> viewRegistry.taskView().findTask();
+            case 8 -> viewRegistry.taskView().changeTaskAssignee();
+            case 9 -> viewRegistry.taskView().changeTaskStatus();
             default -> System.out.println("Please enter valid menu option");
         }
     }
