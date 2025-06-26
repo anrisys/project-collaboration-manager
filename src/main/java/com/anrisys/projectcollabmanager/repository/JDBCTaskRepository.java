@@ -2,7 +2,7 @@ package com.anrisys.projectcollabmanager.repository;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
-import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
+import com.anrisys.projectcollabmanager.dto.UpdateTaskRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 
@@ -198,7 +198,7 @@ public class JDBCTaskRepository implements TaskRepository{
     }
 
     @Override
-    public Task update(Long id, TaskUpdateRequest request) throws DataAccessException {
+    public Task update(Long id, UpdateTaskRequest request) throws DataAccessException {
         StringBuilder query = new StringBuilder ("UPDATE tasks SET ");
 
         if (request.title() != null && request.shortDescription() != null) {

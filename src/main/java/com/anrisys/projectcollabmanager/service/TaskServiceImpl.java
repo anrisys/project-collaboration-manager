@@ -107,8 +107,14 @@ public class TaskServiceImpl implements TaskService{
     }
 
     @Override
-    public Task update(Long projectId, Long clientId, TaskUpdateRequest request) {
-        return null;
+    public Task update(Long taskId, Long clientId, UpdateTaskRequest request) {
+        Task taskById = getTaskById(taskId, clientId);
+
+        boolean projectOwner = isUserProjectOwner(clientId, taskById);
+
+        if (!projectOwner) throw new UnauthorizedException();
+
+        return taskRepository.update(taskId, request);
     }
 
     @Override

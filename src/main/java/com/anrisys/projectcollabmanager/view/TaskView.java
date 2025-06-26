@@ -4,6 +4,7 @@ import com.anrisys.projectcollabmanager.application.AppContext;
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
 import com.anrisys.projectcollabmanager.dto.CreateTaskWithEmailAssignee;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
+import com.anrisys.projectcollabmanager.dto.UpdateTaskRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.service.TaskService;
 import com.anrisys.projectcollabmanager.util.CLIInputUtil;
@@ -114,7 +115,20 @@ public class TaskView {
         System.out.println("Successful update task status as : " + task.getStatus().name());
     }
 
-    public void updateTask() {}
+    public void updateTask() {
+        Integer projectIndex = taskIdxPrompt("x");
+        TaskDTO taskDTO = myTasksList.get(projectIndex);
+
+        String title = taskTitlePrompt();
+        String shortDescription = shortDescriptionPrompt();
+        if (shortDescription.isEmpty()) shortDescription = null;
+
+        UpdateTaskRequest request = new UpdateTaskRequest(title, shortDescription);
+
+        Task updated = taskService.update(taskDTO.id(), appContext.getCurrentUser().getId(), request);
+
+        System.out.println("Successful updated task with title : " + updated.getTitle());
+    }
 
     public void findTask() {}
 

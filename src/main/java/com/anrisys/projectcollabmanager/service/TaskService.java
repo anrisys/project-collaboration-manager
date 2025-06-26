@@ -3,7 +3,7 @@ package com.anrisys.projectcollabmanager.service;
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
 import com.anrisys.projectcollabmanager.dto.CreateTaskWithEmailAssignee;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
-import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
+import com.anrisys.projectcollabmanager.dto.UpdateTaskRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface TaskService {
     List<TaskDTO> getAllTaskByProjectIdAndAssigneeId(Long projectId, Long userId);
     List<TaskDTO> getAllTaskByProjectIdAndStatus(Long projectId, Long clientId);
 
-    Task update(Long projectId, Long clientId, TaskUpdateRequest request);
+    Task update(Long taskId, Long clientId, UpdateTaskRequest request);
     Task changeAssignee(Long taskId, Long clientId, String assigneeEmail);
     Task updateStatus(Long taskId, Long clientId, Task.Status status);
 }

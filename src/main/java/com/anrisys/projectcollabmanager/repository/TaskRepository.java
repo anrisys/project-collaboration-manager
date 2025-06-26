@@ -2,7 +2,7 @@ package com.anrisys.projectcollabmanager.repository;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
-import com.anrisys.projectcollabmanager.dto.TaskUpdateRequest;
+import com.anrisys.projectcollabmanager.dto.UpdateTaskRequest;
 import com.anrisys.projectcollabmanager.entity.Task;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 
@@ -19,7 +19,7 @@ public interface TaskRepository {
     Optional<List<TaskDTO>> findAllByProjectIdAndAssigneeId(Long projectId, Long assigneeId) throws DataAccessException;
     Optional<List<TaskDTO>> findAllByProjectIdAndByStatus(Long projectId, Task.Status status) throws DataAccessException;
 
-    Task update(Long id, TaskUpdateRequest request) throws DataAccessException;
+    Task update(Long id, UpdateTaskRequest request) throws DataAccessException;
     Task updateAssignee(Long taskId, Long assigneeId) throws DataAccessException;
     Task updateStatus(Long taskId, Task.Status status) throws DataAccessException;
 
