@@ -28,6 +28,7 @@ public class TaskView {
         this.appContext = appContext;
         this.taskService = taskService;
         this.allProjectTasks = new HashMap<>();
+        this.myTasksList = new HashMap<>();
         this.isAllProjectTasksDirty = false;
     }
 
@@ -112,6 +113,8 @@ public class TaskView {
         Task.Status status = promptTaskStatus(taskDTO);
 
         Task task = taskService.updateStatus(taskDTO.id(), appContext.getCurrentUser().getId(), status);
+        isAllProjectTasksDirty = true;
+        isMyTasksListDirty = true;
         System.out.println("Successful update task status as : " + task.getStatus().name());
     }
 
@@ -127,6 +130,8 @@ public class TaskView {
 
         Task updated = taskService.update(taskDTO.id(), appContext.getCurrentUser().getId(), request);
 
+        isAllProjectTasksDirty = true;
+        isMyTasksListDirty = true;
         System.out.println("Successful updated task with title : " + updated.getTitle());
     }
 
