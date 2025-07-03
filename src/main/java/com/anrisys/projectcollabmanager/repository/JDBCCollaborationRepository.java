@@ -155,7 +155,7 @@ public class JDBCCollaborationRepository implements CollaborationRepository{
 
     @Override
     public Optional<List<ProjectDTO>> findCollaborationsByUserId(Long projectId) throws DataAccessException {
-        final String sql = "SELECT p.id, p.title FROM projects p JOIN collaborations c WHERE p.id = c.project_id AND c.project_id = ?";
+        final String sql = "SELECT p.id, p.title, p.is_personal, p.owner FROM projects p JOIN collaborations c WHERE p.id = c.project_id AND c.project_id = ?";
         final String message = "Failed to fetch collaborations projects of users with id: %d".formatted(projectId);
 
         try (Connection connection = dataSource.getConnection();
@@ -169,7 +169,9 @@ public class JDBCCollaborationRepository implements CollaborationRepository{
                 while (resultSet.next()) {
                     userProjects.add(new ProjectDTO(
                             resultSet.getLong("id"),
-                            resultSet.getString("title")
+                            resultSet.getString("title"),
+                            resultSet.getBoolean("is_personal"),
+                            resultSet.getLong("owner")
                     ));
                 }
             }

@@ -10,11 +10,8 @@
     </appender>
 
     <!-- File Appender with Rolling Policy -->
-    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}</file>
-        <filter class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <level>ERROR</level>
-        </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Rotate daily -->
             <fileNamePattern>${LOG_DIR}/collab-manager.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -25,23 +22,15 @@
         </encoder>
     </appender>
 
-    <!-- Repository Layer Logger -->
-    <logger name="com.anrisys.projectcollabmanager.repository" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ERROR_FILE"/>
-    </logger>
-
-    <!-- Service Layer Logger -->
-    <logger name="com.anrisys.projectcollabmanager.service" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ERROR_FILE"/>
-    </logger>
-
-
     <!-- Root Logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
 
+    <!-- Project-specific Logger -->
+    <logger name="com.anrisys.projectcollabmanager" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
 </configuration>

@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.service.auth;
 
+import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.auth.EmailAlreadyRegisteredException;
@@ -14,12 +15,12 @@ public class BasicAuthServiceRegisterIT extends BaseBasicAuthServiceIT{
         String email = "test@example.com";
         String password = "Password123";
 
-        User user = authService.register(email, password);
-        boolean personalProjectCreated = projectRepository.HasSameProjectName(user.getId(), "Personal");
+        UserDTO user = authService.register(email, password);
+        boolean personalProjectCreated = projectRepository.HasSameProjectName(user.id(), "Personal");
 
         Assertions.assertNotNull(user);
-        Assertions.assertNotNull(user.getId());
-        Assertions.assertEquals(email, user.getEmail());
+        Assertions.assertNotNull(user.id());
+        Assertions.assertEquals(email, user.email());
         Assertions.assertTrue(personalProjectCreated);
     }
 

@@ -6,12 +6,8 @@ import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
 import com.anrisys.projectcollabmanager.exception.projects.ProjectNotFoundException;
-import com.anrisys.projectcollabmanager.repository.JDBCProjectRepository;
-import com.anrisys.projectcollabmanager.repository.JDBCUserRepository;
-import com.anrisys.projectcollabmanager.repository.ProjectRepository;
-import com.anrisys.projectcollabmanager.repository.UserRepository;
-import com.anrisys.projectcollabmanager.service.BasicProjectService;
-import com.anrisys.projectcollabmanager.service.ProjectService;
+import com.anrisys.projectcollabmanager.repository.*;
+import com.anrisys.projectcollabmanager.service.*;
 import org.junit.jupiter.api.*;
 
 import javax.sql.DataSource;
@@ -24,7 +20,10 @@ public class BasicProjectServiceIT {
     protected static DataSource dataSource;
     protected static User sampleUser;
     protected static UserRepository userRepository;
+    protected static CollaborationRepository collaborationRepository;
     protected static ProjectRepository projectRepository;
+    protected static UserService userService;
+    protected static CollaborationInfoService collaborationInfoService;
     protected static ProjectService projectService;
 
     @BeforeAll
@@ -32,7 +31,10 @@ public class BasicProjectServiceIT {
         dataSource = DBConfig.getDataSource();
         userRepository = new JDBCUserRepository(dataSource);
         projectRepository = new JDBCProjectRepository(dataSource);
-        projectService = new BasicProjectService(projectRepository);
+        collaborationRepository = new JDBCCollaborationRepository(dataSource);
+        userService = new BasicUserService(userRepository);
+        collaborationInfoService = new BasicCollaborationService(collaborationRepository, projectService, userService);
+        projectService = new BasicProjectService(projectRepository, collaborationInfoService);
 
         User user = new User("sample@user.com", "Sample1234!@#$");
         sampleUser = userRepository.save(user);
@@ -64,7 +66,7 @@ public class BasicProjectServiceIT {
     @Test
     void createProject_withValidData_returnProject() {
         String projectTitle = "Test 1";
-        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), true, null);
 
         Project savedProject = projectService.create(project);
 
@@ -78,7 +80,7 @@ public class BasicProjectServiceIT {
     @DisplayName("Create project with same saved project")
     void createProject_withSameTitle_returnHasSameProjectNameException() {
         String projectTitle = "Test 1";
-        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), true, null);
 
         projectService.create(project);
 
@@ -96,7 +98,7 @@ public class BasicProjectServiceIT {
     @Test
     void findProjectById_ByOwner_returnSavedProject() {
         String projectTitle = "Test 1";
-        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(),true, null);
 
         Project savedProject = projectService.create(project);
 
@@ -112,7 +114,7 @@ public class BasicProjectServiceIT {
     @Test
     void findProjectById_ByNonOwner_returnUnsupportedOperationExecution() {
         String projectTitle = "Test 1";
-        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), null);
+        ProjectCreateRequest project = new ProjectCreateRequest(projectTitle, sampleUser.getId(), true, null);
 
         Project savedProject = projectService.create(project);
 

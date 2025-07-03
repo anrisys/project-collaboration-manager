@@ -1,8 +1,13 @@
 package com.anrisys.projectcollabmanager.repository;
 
+import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
+import com.anrisys.projectcollabmanager.exception.user.UserNotFoundException;
+import com.anrisys.projectcollabmanager.util.LoggerUtil;
 import com.anrisys.projectcollabmanager.util.PasswordUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -10,14 +15,18 @@ import java.util.Optional;
 
 public class JDBCUserRepository implements UserRepository{
     private final DataSource dataSource;
+    private final static Logger log = LoggerFactory.getLogger(JDBCUserRepository.class);
 
     public JDBCUserRepository(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     @Override
-    public User save(User user) throws DataAccessException {
+    public UserDTO save(User user) throws DataAccessException {
+        final String methodName = "save";
         final String sql = "INSERT INTO users (email, hashed_password) VALUES(?, ?)";
+
+        logSQL(methodName, sql);
 
         try (
                 Connection connection = dataSource.getConnection();
@@ -30,28 +39,37 @@ public class JDBCUserRepository implements UserRepository{
             statement.setString(2, user.getHashedPassword());
 
             int affectedRow = statement.executeUpdate();
+            log.debug("{} : Insert executed, affected rows: {}", methodName, affectedRow);
 
             if(affectedRow != 1) {
-                throw new DataAccessException("Failed to save new user");
+                log.warn("{} : Failed to save user: expected 1 affected row, got {}", methodName, affectedRow);
+                throw new DataAccessException("Unexpected affected row count: " + affectedRow);
             }
 
             try (ResultSet rs = statement.getGeneratedKeys()) {
                 if(!rs.next()) {
-                    throw new DataAccessException("Failed to retrieve generated ID");
+                    log.error("{} : Insert succeeded but failed to retrieve generated ID for email: {}",
+                            methodName,
+                            LoggerUtil.maskEmail(user.getEmail()));
+                    throw new DataAccessException("Failed to retrieve generated user ID");
                 }
-                user.setId(rs.getLong(1));
+                long generatedId = rs.getLong(1);
+                user.setId(generatedId);
             }
 
-            return user;
+            return new UserDTO(user.getId(), user.getEmail());
         } catch (SQLException e) {
-            throw new DataAccessException("Failed saved new user", e);
+            log.error("{} : Database error while saving user with email: {}", methodName, LoggerUtil.maskEmail(user.getEmail()), e);
+            throw new DataAccessException("Failed to save new user", e);
         }
     }
 
     @Override
     public Optional<User> findById(Long id) throws DataAccessException {
-        final String sql = "SELECT * WHERE id = ?";
+        final String methodName = "findById";
+        final String sql = "SELECT id, email, hashed_password FROM users WHERE id = ?";
 
+        logSQL(methodName, sql);
         try (
                 Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql);
@@ -70,14 +88,17 @@ public class JDBCUserRepository implements UserRepository{
                 return Optional.empty();
             }
         } catch (SQLException e) {
+            log.error("{}: Database error. Failed to find user", methodName, e);
             throw new DataAccessException("Failed to find user", e);
         }
     }
 
     @Override
     public Optional<User> findByEmail(String email) throws DataAccessException {
-        final String sql = "SELECT * FROM users WHERE email = ?";
+        final String methodName = "findByEmail";
+        final String sql = "SELECT id, email, hashed_password FROM users WHERE email = ?";
 
+        logSQL(methodName, sql);
         try (
                 Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql);
@@ -96,6 +117,7 @@ public class JDBCUserRepository implements UserRepository{
                 return Optional.empty();
             }
         } catch (SQLException e) {
+            log.error("{} : Database error. Failed to find user", methodName, e);
             throw new DataAccessException("Failed find user", e);
         }
     }
@@ -103,6 +125,7 @@ public class JDBCUserRepository implements UserRepository{
     @Override
     public boolean existsByEmail(String email) throws DataAccessException {
         final String sql = "SELECT COUNT(email) FROM users WHERE email = ?";
+        logSQL("existsByEmail", sql);
 
         try(
              Connection connection = dataSource.getConnection();
@@ -119,6 +142,7 @@ public class JDBCUserRepository implements UserRepository{
                 }
             }
         } catch (SQLException e) {
+            log.error("existsByEmail : Database error. Failed to check email", e);
             throw new DataAccessException("Failed to check email", e);
         }
     }
@@ -126,12 +150,13 @@ public class JDBCUserRepository implements UserRepository{
     @Override
     public User updateEmail(Long id, String newEmail) throws DataAccessException {
         final String sql = "UPDATE users SET email = ? WHERE id = ?";
-        final String selectQuery = "SELECT id, email FROM users WHERE id = ?";
+        final String methodName = "updateEmail";
+
+        logSQL(methodName, sql);
 
         try (
              Connection connection = dataSource.getConnection();
              PreparedStatement updateStatement = connection.prepareStatement(sql);
-             PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
              ) {
             updateStatement.setString(1, newEmail);
             updateStatement.setLong(2, id);
@@ -139,25 +164,26 @@ public class JDBCUserRepository implements UserRepository{
             int affectedRow = updateStatement.executeUpdate();
 
             if(affectedRow != 1) {
+                log.warn("{} : Failed to update user email: expected 1 affected row, got {}", methodName, affectedRow);
                 throw new DataAccessException("Failed to update email");
             }
 
-            selectStatement.setLong(1, id);
-            try (ResultSet resultSet = selectStatement.executeQuery()) {
-                if(resultSet.next()) {
-                    return new User(resultSet.getLong("id"), resultSet.getString("email"));
-                }
-                throw new DataAccessException("user not found after update");
-            }
+            return findById(id).orElseThrow(
+                    UserNotFoundException::new
+            );
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            log.error("{} : Database error. Failed to update user email with id: {}", methodName, id, e);
+            throw new DataAccessException("Database error. Failed to update user email", e);
         }
     }
 
     @Override
     public void updatePassword(Long id, String newPassword) throws DataAccessException {
         final String sql = "UPDATE users SET password = ? WHERE id = ?";
+        final String methodName = "updatePassword";
+
+        logSQL(methodName, sql);
 
         try (
                 Connection connection = dataSource.getConnection();
@@ -169,36 +195,36 @@ public class JDBCUserRepository implements UserRepository{
             int affectedRow = statement.executeUpdate();
 
             if(affectedRow != 1) {
+                log.warn("{} : Failed to update user password: expected 1 affected row, got {}", methodName, affectedRow);
                 throw  new DataAccessException("Failed to update user password");
             }
 
         } catch (SQLException e) {
+            log.error("{} : Database error. Failed to update password by user id: {}", methodName, id, e);
             throw new DataAccessException("Failed to update user password", e);
         }
     }
 
     @Override
-    public User deleteById(Long id) throws DataAccessException {
+    public void deleteById(Long id) throws DataAccessException {
         final String sql = "DELETE FROM users WHERE id = ?";
         final String selectQuery = "COUNT (*) FROM users WHERE id = ?";
+        final String methodName = "deleteById";
+
+        logSQL(methodName, sql);
 
         try (
                 Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql);
                 PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
             ) {
-
-            Optional<User> user = findById(id);
-
-            if(user.isEmpty()) {
-                throw new DataAccessException("User not found");
-            }
-
             statement.setLong(1, id);
 
             int affectedRow = statement.executeUpdate();
 
             if(affectedRow != 1) {
+                log.warn("{} : Failed to delete user with id {}: expected 1 affected row, got {}", methodName,
+                        id, affectedRow);
                 throw new DataAccessException("Failed to delete a user account");
             }
 
@@ -206,13 +232,18 @@ public class JDBCUserRepository implements UserRepository{
 
             try(ResultSet resultSet = selectStmt.executeQuery()) {
                 if (resultSet.getInt(1) != 0) {
+                    log.warn("{} : Deleted user found: expected 0 data got {}", methodName,
+                            resultSet.getInt(1));
                     throw new DataAccessException("Failed to delete the user");
                 }
             }
-
-            return user.get();
         } catch (SQLException e) {
+            log.error("{}: Database error. Failed to delete a user with id: {}", methodName, id, e);
             throw new DataAccessException("Failed delete the user", e);
         }
+    }
+
+    private static void logSQL(String methodName, String sql) {
+        log.debug("{}: SQL: {}", methodName, sql);
     }
 }

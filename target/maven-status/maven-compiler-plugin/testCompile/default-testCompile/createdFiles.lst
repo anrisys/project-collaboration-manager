@@ -1,0 +1,6 @@
+com\anrisys\projectcollabmanager\service\auth\BasicAuthServiceLoginIT.class
+com\anrisys\projectcollabmanager\AppTest.class
+com\anrisys\projectcollabmanager\service\auth\BaseBasicAuthServiceIT.class
+com\anrisys\projectcollabmanager\service\auth\BasicAuthServiceRegisterIT.class
+com\anrisys\projectcollabmanager\service\project\ProjectTestUtil.class
+com\anrisys\projectcollabmanager\service\project\BasicProjectServiceIT.class

@@ -1,5 +1,6 @@
 package com.anrisys.projectcollabmanager.service.auth;
 
+import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.auth.InvalidCredentials;
 import org.junit.jupiter.api.Assertions;
@@ -13,12 +14,11 @@ public class BasicAuthServiceLoginIT extends BaseBasicAuthServiceIT{
 
         authService.register(email, password);
 
-        User loggedInUser = authService.login(email, password);
+        UserDTO loggedInUser = authService.login(email, password);
 
         Assertions.assertNotNull(loggedInUser);
-        Assertions.assertNotNull(loggedInUser.getId());
-        Assertions.assertEquals(email, loggedInUser.getEmail());
-        Assertions.assertNull(loggedInUser.getHashedPassword());
+        Assertions.assertNotNull(loggedInUser.id());
+        Assertions.assertEquals(email, loggedInUser.email());
     }
 
     @Test
