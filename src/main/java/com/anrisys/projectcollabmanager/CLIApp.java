@@ -27,7 +27,7 @@ public class CLIApp {
 
             // Service layer
             UserService userService = new BasicUserService(userRepository);
-            BasicCollaborationService collaborationService = new BasicCollaborationService(
+            CollaborationServiceImpl collaborationService = new CollaborationServiceImpl(
                     collaborationRepository, null, null);
             ProjectService projectService = new ProjectServiceImpl(projectRepository, collaborationService);
             AuthService authService = new AuthServiceImpl(userRepository, projectService);

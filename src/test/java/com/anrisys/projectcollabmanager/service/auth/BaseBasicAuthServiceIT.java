@@ -17,7 +17,7 @@ public class BaseBasicAuthServiceIT {
     protected static UserRepository userRepository;
     protected static ProjectRepository projectRepository;
     protected static CollaborationRepository collaborationRepository;
-    protected static BasicCollaborationService collaborationService;
+    protected static CollaborationServiceImpl collaborationService;
     protected static ProjectService projectService;
     protected static AuthServiceImpl authService;
     protected static UserService userService;
@@ -29,7 +29,7 @@ public class BaseBasicAuthServiceIT {
         projectRepository = new JDBCProjectRepository(dataSource);
         collaborationRepository = new JDBCCollaborationRepository(dataSource);
         userService = new BasicUserService(userRepository);
-        collaborationService = new BasicCollaborationService(collaborationRepository, null, userService);
+        collaborationService = new CollaborationServiceImpl(collaborationRepository, null, userService);
         projectService = new ProjectServiceImpl(projectRepository, collaborationService);
         collaborationService.setProjectService(projectService);
         authService = new AuthServiceImpl(userRepository, projectService);

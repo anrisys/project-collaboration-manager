@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CollaborationRepository {
-    Collaboration addUserToProject(CreateCollaborationRequest request) throws DataAccessException;
-    void removeUserFromProject(Long projectId, Long userId) throws DataAccessException;
+    Collaboration create(CreateCollaborationRequest request) throws DataAccessException;
+    void delete(Long id) throws DataAccessException;
 
     Optional<List<UserDTO>> findMembersByProjectId(Long projectId) throws DataAccessException;
     Optional<List<ProjectDTO>> findCollaborationsByUserId(Long projectId) throws DataAccessException;

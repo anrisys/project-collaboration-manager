@@ -17,4 +17,8 @@ public class LoggerUtil {
     public static void logSQLExecuted(Logger log, String methodName) {
         log.debug("[{}]: SQL executed.", methodName);
     }
+
+    public static void logDatabaseError(Logger log, String methodName, String message, Exception e) {
+        log.error("[{}] Database error.{}", methodName, message, e);
+    }
 }

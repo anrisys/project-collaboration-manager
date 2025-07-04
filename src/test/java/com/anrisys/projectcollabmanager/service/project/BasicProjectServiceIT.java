@@ -32,7 +32,7 @@ public class BasicProjectServiceIT {
         projectRepository = new JDBCProjectRepository(dataSource);
         collaborationRepository = new JDBCCollaborationRepository(dataSource);
         userService = new BasicUserService(userRepository);
-        collaborationInfoService = new BasicCollaborationService(collaborationRepository, projectService, userService);
+        collaborationInfoService = new CollaborationServiceImpl(collaborationRepository, projectService, userService);
         projectService = new ProjectServiceImpl(projectRepository, collaborationInfoService);
 
         User user = new User("sample@user.com", "Sample1234!@#$");
