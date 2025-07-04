@@ -13,12 +13,12 @@ import com.anrisys.projectcollabmanager.util.PasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BasicAuthService implements AuthService{
+public class AuthServiceImpl implements AuthService{
     private final UserRepository userRepository;
     private final ProjectService projectService;
-    private final static Logger log = LoggerFactory.getLogger(BasicAuthService.class);
+    private final static Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    public BasicAuthService(UserRepository userRepository, ProjectService projectService) {
+    public AuthServiceImpl(UserRepository userRepository, ProjectService projectService) {
         this.userRepository = userRepository;
         this.projectService = projectService;
     }

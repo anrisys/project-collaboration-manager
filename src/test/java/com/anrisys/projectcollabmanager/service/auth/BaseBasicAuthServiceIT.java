@@ -19,7 +19,7 @@ public class BaseBasicAuthServiceIT {
     protected static CollaborationRepository collaborationRepository;
     protected static BasicCollaborationService collaborationService;
     protected static ProjectService projectService;
-    protected static BasicAuthService authService;
+    protected static AuthServiceImpl authService;
     protected static UserService userService;
 
     @BeforeAll
@@ -30,9 +30,9 @@ public class BaseBasicAuthServiceIT {
         collaborationRepository = new JDBCCollaborationRepository(dataSource);
         userService = new BasicUserService(userRepository);
         collaborationService = new BasicCollaborationService(collaborationRepository, null, userService);
-        projectService = new BasicProjectService(projectRepository, collaborationService);
+        projectService = new ProjectServiceImpl(projectRepository, collaborationService);
         collaborationService.setProjectService(projectService);
-        authService = new BasicAuthService(userRepository, projectService);
+        authService = new AuthServiceImpl(userRepository, projectService);
     }
 
     @BeforeEach

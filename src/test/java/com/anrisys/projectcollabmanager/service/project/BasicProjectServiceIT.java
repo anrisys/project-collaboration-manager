@@ -5,7 +5,6 @@ import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
-import com.anrisys.projectcollabmanager.exception.projects.ProjectNotFoundException;
 import com.anrisys.projectcollabmanager.repository.*;
 import com.anrisys.projectcollabmanager.service.*;
 import org.junit.jupiter.api.*;
@@ -34,7 +33,7 @@ public class BasicProjectServiceIT {
         collaborationRepository = new JDBCCollaborationRepository(dataSource);
         userService = new BasicUserService(userRepository);
         collaborationInfoService = new BasicCollaborationService(collaborationRepository, projectService, userService);
-        projectService = new BasicProjectService(projectRepository, collaborationInfoService);
+        projectService = new ProjectServiceImpl(projectRepository, collaborationInfoService);
 
         User user = new User("sample@user.com", "Sample1234!@#$");
         sampleUser = userRepository.save(user);
