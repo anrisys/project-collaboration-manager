@@ -21,4 +21,8 @@ public class LoggerUtil {
     public static void logDatabaseError(Logger log, String methodName, String message, Exception e) {
         log.error("[{}] Database error.{}", methodName, message, e);
     }
+
+    public static void logUnexpectedRowAffectedQuery(Logger log, String methodName, String message, int affectedRow) {
+        log.warn("[{}] {}. Expected affected row 1 got {}", methodName, message, affectedRow);
+    }
 }

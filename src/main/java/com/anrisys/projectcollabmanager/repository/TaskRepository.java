@@ -13,7 +13,7 @@ public interface TaskRepository {
     Task save(CreateTaskRequest task) throws DataAccessException;
     Optional<Task> findById(Long id) throws DataAccessException;
     Optional<Task> findByTitle(String title) throws DataAccessException;
-    Task deleteById(Long id) throws DataAccessException;
+    void deleteById(Long id) throws DataAccessException;
 
     Optional<List<TaskDTO>> findAllByProjectId(Long projectId) throws DataAccessException;
     Optional<List<TaskDTO>> findAllByProjectIdAndAssigneeId(Long projectId, Long assigneeId) throws DataAccessException;

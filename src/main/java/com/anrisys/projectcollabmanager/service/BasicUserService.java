@@ -20,7 +20,10 @@ public class BasicUserService implements UserService{
     public UserDTO findByEmail(String email) {
         log.debug("[findByEmail] Attempt to find user with email={}", LoggerUtil.maskEmail(email));
         User user = userRepository.findByEmail(email).orElseThrow(
-                UserNotFoundException::new
+                () -> {
+                    log.warn("[findByEmail] User with email={} not found", LoggerUtil.maskEmail(email));
+                    return new UserNotFoundException();
+                }
         );
 
         return new UserDTO(user.getId(), user.getEmail());
