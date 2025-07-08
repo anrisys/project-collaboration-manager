@@ -1,0 +1,24 @@
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             version="3.0">
+    <persistence-unit name="projectCollabManagerPU">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <class>com.anrisys.projectcollabmanager.entity.User</class>
+        <class>com.anrisys.projectcollabmanager.entity.Project</class>
+        <class>com.anrisys.projectcollabmanager.entity.Task</class>
+        <class>com.anrisys.projectcollabmanager.entity.Collaboration</class>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+            <!--Not needed since used hikariCP-->
+            <!--<property name="jakarta.persistence.jdbc.user" value="${DB_USER}" />-->
+            <!--<property name="jakarta.persistence.jdbc.password" value="${DB_PASSWORD}" />-->
+            <!--<property name="jakarta.persistence.jdbc.url" value="${DB_URL}" />-->
+
+            <!-- Hibernate Dialect -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+            <!-- Show SQL in logs (for development only) -->
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
