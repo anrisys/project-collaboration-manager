@@ -1,10 +1,12 @@
-package com.anrisys.projectcollabmanager.repository;
+package com.anrisys.projectcollabmanager.repository.jdbc;
 
 import com.anrisys.projectcollabmanager.dto.ProjectCreateRequest;
 import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.ProjectUpdateRequest;
 import com.anrisys.projectcollabmanager.entity.Project;
+import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
+import com.anrisys.projectcollabmanager.repository.ProjectRepository;
 import com.anrisys.projectcollabmanager.util.LoggerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JDBCProjectRepository implements ProjectRepository{
+public class JDBCProjectRepository implements ProjectRepository {
     private final DataSource dataSource;
     private final static Logger log = LoggerFactory.getLogger(JDBCProjectRepository.class);
 
@@ -89,15 +91,16 @@ public class JDBCProjectRepository implements ProjectRepository{
             try (ResultSet resultSet = statement.executeQuery()) {
                 LoggerUtil.logSQLExecuted(log, methodName);
                 if(resultSet.next()) {
-                    return Optional.of(Project.fromDB(
-                            resultSet.getLong("id"),
-                            resultSet.getString("title"),
-                            resultSet.getLong("owner"),
-                            resultSet.getBoolean("is_personal"),
-                            resultSet.getString("description"),
-                            resultSet.getTimestamp("created_at").toInstant(),
-                            resultSet.getTimestamp("updated_at").toInstant()
-                    ));
+                    Project project = new Project();
+                    User owner = new User();
+                    owner.setId(resultSet.getLong("owner"));
+                    project.setId(resultSet.getLong("id"));
+                    project.setTitle(resultSet.getString("title"));
+                    project.setPersonal(resultSet.getBoolean("is_personal"));
+                    project.setDescription(resultSet.getString("description"));
+                    project.setCreatedAt(resultSet.getTimestamp("created_at").toInstant());
+                    project.setUpdatedAt(resultSet.getTimestamp("updated_at").toInstant());
+                    return Optional.of(project);
                 } else {
                     return Optional.empty();
                 }
@@ -124,15 +127,16 @@ public class JDBCProjectRepository implements ProjectRepository{
             try (ResultSet resultSet = statement.executeQuery()) {
                 LoggerUtil.logSQLExecuted(log, methodName);
                 if(resultSet.next()) {
-                    return Optional.of(Project.fromDB(
-                            resultSet.getLong("id"),
-                            resultSet.getString("title"),
-                            resultSet.getLong("owner"),
-                            resultSet.getBoolean("is_personal"),
-                            resultSet.getString("description"),
-                            resultSet.getTimestamp("created_at").toInstant(),
-                            resultSet.getTimestamp("updated_at").toInstant()
-                    ));
+                    Project project = new Project();
+                    User owner = new User();
+                    owner.setId(resultSet.getLong("owner"));
+                    project.setId(resultSet.getLong("id"));
+                    project.setTitle(resultSet.getString("title"));
+                    project.setPersonal(resultSet.getBoolean("is_personal"));
+                    project.setDescription(resultSet.getString("description"));
+                    project.setCreatedAt(resultSet.getTimestamp("created_at").toInstant());
+                    project.setUpdatedAt(resultSet.getTimestamp("updated_at").toInstant());
+                    return Optional.of(project);
                 }
 
                 return Optional.empty();

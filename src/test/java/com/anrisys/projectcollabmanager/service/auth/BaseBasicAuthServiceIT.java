@@ -2,6 +2,9 @@ package com.anrisys.projectcollabmanager.service.auth;
 
 import com.anrisys.projectcollabmanager.application.DBConfig;
 import com.anrisys.projectcollabmanager.repository.*;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCCollaborationRepository;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCProjectRepository;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCUserRepository;
 import com.anrisys.projectcollabmanager.service.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

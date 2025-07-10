@@ -6,6 +6,9 @@ import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.projects.HasSameProjectNameException;
 import com.anrisys.projectcollabmanager.repository.*;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCCollaborationRepository;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCProjectRepository;
+import com.anrisys.projectcollabmanager.repository.jdbc.JDBCUserRepository;
 import com.anrisys.projectcollabmanager.service.*;
 import org.junit.jupiter.api.*;
 

@@ -1,11 +1,13 @@
-package com.anrisys.projectcollabmanager.repository;
+package com.anrisys.projectcollabmanager.repository.jdbc;
 
 import com.anrisys.projectcollabmanager.dto.CreateCollaborationRequest;
 import com.anrisys.projectcollabmanager.dto.ProjectDTO;
 import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.Collaboration;
+import com.anrisys.projectcollabmanager.entity.Project;
+import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
-import com.anrisys.projectcollabmanager.exception.core.ResourceNotFoundException;
+import com.anrisys.projectcollabmanager.repository.CollaborationRepository;
 import com.anrisys.projectcollabmanager.util.LoggerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JDBCCollaborationRepository implements CollaborationRepository{
+public class JDBCCollaborationRepository implements CollaborationRepository {
     private final DataSource dataSource;
     private final static Logger log = LoggerFactory.getLogger(JDBCCollaborationRepository.class);
 
@@ -41,14 +43,15 @@ public class JDBCCollaborationRepository implements CollaborationRepository{
             try (ResultSet resultSet = statement.executeQuery()) {
                 LoggerUtil.logSQLExecuted(log, methodName);
                 if (!resultSet.next()) return Optional.empty();
-
-                return Optional.of(Collaboration.fromDB(
-                        resultSet.getLong("id"),
-                        resultSet.getLong("project_id"),
-                        resultSet.getLong("user_id"),
-                        resultSet.getTimestamp("created_at").toInstant(),
-                        resultSet.getTimestamp("updated_at").toInstant()
-                ));
+                Collaboration collaboration = new Collaboration();
+                Project project = new Project();
+                project.setId(resultSet.getLong("project_id"));
+                User member = new User();
+                member.setId(resultSet.getLong("user_id"));
+                collaboration.setId(resultSet.getLong("id"));
+                collaboration.setCreatedAt(resultSet.getTimestamp("created_at").toInstant());
+                collaboration.setUpdatedAt(resultSet.getTimestamp("updated_at").toInstant());
+                return Optional.of(collaboration);
             }
         } catch (SQLException e) {
             LoggerUtil.logDatabaseError(log, methodName, message, e);
@@ -140,13 +143,15 @@ public class JDBCCollaborationRepository implements CollaborationRepository{
                 if (!resultSet.next()) {
                     throw new DataAccessException(message);
                 }
-                return Optional.of(Collaboration.fromDB(
-                        resultSet.getLong("id"),
-                        resultSet.getLong("project_id"),
-                        resultSet.getLong("user_id"),
-                        resultSet.getTimestamp("created_at").toInstant(),
-                        resultSet.getTimestamp("updated_at").toInstant()
-                ));
+                Collaboration collaboration = new Collaboration();
+                Project project = new Project();
+                project.setId(resultSet.getLong("project_id"));
+                User member = new User();
+                member.setId(resultSet.getLong("user_id"));
+                collaboration.setId(resultSet.getLong("id"));
+                collaboration.setCreatedAt(resultSet.getTimestamp("created_at").toInstant());
+                collaboration.setUpdatedAt(resultSet.getTimestamp("updated_at").toInstant());
+                return Optional.of(collaboration);
             }
         } catch (SQLException e) {
             LoggerUtil.logDatabaseError(log, methodName, message, e);

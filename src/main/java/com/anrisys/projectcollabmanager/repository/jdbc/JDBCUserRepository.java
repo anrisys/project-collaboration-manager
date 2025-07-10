@@ -1,9 +1,10 @@
-package com.anrisys.projectcollabmanager.repository;
+package com.anrisys.projectcollabmanager.repository.jdbc;
 
 import com.anrisys.projectcollabmanager.dto.UserDTO;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 import com.anrisys.projectcollabmanager.exception.user.UserNotFoundException;
+import com.anrisys.projectcollabmanager.repository.UserRepository;
 import com.anrisys.projectcollabmanager.util.LoggerUtil;
 import com.anrisys.projectcollabmanager.util.PasswordUtil;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Optional;
 
-public class JDBCUserRepository implements UserRepository{
+public class JDBCUserRepository implements UserRepository {
     private final DataSource dataSource;
     private final static Logger log = LoggerFactory.getLogger(JDBCUserRepository.class);
 
@@ -79,11 +80,10 @@ public class JDBCUserRepository implements UserRepository{
             try (ResultSet resultSet = statement.executeQuery()) {
                 LoggerUtil.logSQLExecuted(log, methodName);
                 if(resultSet.next()) {
-                    User user = new User(
-                            resultSet.getLong("id"),
-                            resultSet.getString("email"),
-                            resultSet.getString("hashed_password")
-                    );
+                    User user = new User();
+                    user.setId(resultSet.getLong("id"));
+                    user.setEmail(resultSet.getString("email"));
+                    user.setHashedPassword(resultSet.getString("hashed_password"));
                     return Optional.of(user);
                 }
                 return Optional.empty();
@@ -109,11 +109,10 @@ public class JDBCUserRepository implements UserRepository{
             try(ResultSet resultSet = statement.executeQuery()){
                 LoggerUtil.logSQLExecuted(log, methodName);
                 if(resultSet.next()) {
-                    var user = new User(
-                            resultSet.getLong("id"),
-                            resultSet.getString("email"),
-                            resultSet.getString("hashed_password")
-                    );
+                    User user = new User();
+                    user.setId(resultSet.getLong("id"));
+                    user.setEmail(resultSet.getString("email"));
+                    user.setHashedPassword(resultSet.getString("hashed_password"));
                     return Optional.of(user);
                 }
                 return Optional.empty();

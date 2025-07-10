@@ -1,10 +1,13 @@
-package com.anrisys.projectcollabmanager.repository;
+package com.anrisys.projectcollabmanager.repository.jdbc;
 
 import com.anrisys.projectcollabmanager.dto.CreateTaskRequest;
 import com.anrisys.projectcollabmanager.dto.TaskDTO;
 import com.anrisys.projectcollabmanager.dto.UpdateTaskRequest;
+import com.anrisys.projectcollabmanager.entity.Project;
 import com.anrisys.projectcollabmanager.entity.Task;
+import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
+import com.anrisys.projectcollabmanager.repository.TaskRepository;
 import com.anrisys.projectcollabmanager.util.LoggerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JDBCTaskRepository implements TaskRepository{
+public class JDBCTaskRepository implements TaskRepository {
     private final DataSource dataSource;
     private final static Logger log = LoggerFactory.getLogger(JDBCTaskRepository.class);
 
@@ -404,14 +407,19 @@ public class JDBCTaskRepository implements TaskRepository{
     }
 
     private static Task getFromDB(ResultSet resultSet) throws SQLException {
-        return Task.fromDB(resultSet.getLong("id"),
-                resultSet.getString("title"),
-                resultSet.getString("short_description"),
-                resultSet.getLong("project_id"),
-                resultSet.getLong("assignee_id"),
-                resultSet.getString("status"),
-                resultSet.getTimestamp("created_at").toInstant(),
-                resultSet.getTimestamp("updated_at").toInstant()
-        );
+        Task task = new Task();
+        Project project = new Project();
+        project.setId(resultSet.getLong("project_id"));
+        User assignee = new User();
+        assignee.setId(resultSet.getLong("assignee_id"));
+        task.setId(resultSet.getLong("id"));
+        task.setTitle(resultSet.getString("title"));
+        task.setShortDescription(resultSet.getString("short_description"));
+        task.setProject(project);
+        task.setAssignee(assignee);
+        task.setStatus(Task.Status.valueOf(resultSet.getString("status")));
+        task.setCreatedAt(resultSet.getTimestamp("created_at").toInstant());
+        task.setUpdatedAt(resultSet.getTimestamp("updated_at").toInstant());
+        return task;
     }
 }
