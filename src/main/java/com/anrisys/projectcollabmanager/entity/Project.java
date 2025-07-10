@@ -1,69 +1,45 @@
 package com.anrisys.projectcollabmanager.entity;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "projects")
 public class Project {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "title")
     private String title;
-    private Long owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner", nullable = false)
+    private User owner;
+
+    @Column(name = "is_personal")
     private boolean isPersonal;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "created_at")
     private Instant createdAt;
+
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    public Project(Long id, String title, Long owner, boolean isPersonal, String description, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.title = title;
-        this.owner = owner;
-        this.isPersonal = isPersonal;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+    @OneToMany(mappedBy = "project_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();;
 
-    public static Project fromDB(
-            Long id,
-            String title,
-            Long owner,
-            boolean isPersonal,
-            String description,
-            Instant createdAt,
-            Instant updatedAt)
-    {
-        return new Project(id, title, owner, isPersonal, description, createdAt, updatedAt);
-    }
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Collaboration> collaborations = new ArrayList<>();
 
-    public boolean isPersonal() {
-        return isPersonal;
-    }
-
-    public void setPersonal(boolean personal) {
-        isPersonal = personal;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public Project() {
     }
 
     public Long getId() {
@@ -82,23 +58,85 @@ public class Project {
         this.title = title;
     }
 
-    public Long getOwner() {
+    public User getOwner() {
         return owner;
     }
 
-    public void setOwner(Long owner) {
+    public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public boolean isPersonal() {
+        return isPersonal;
+    }
+
+    public void setPersonal(boolean personal) {
+        isPersonal = personal;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<Task> getTasks() {
+        return Collections.unmodifiableList(tasks);
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setProject(this);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+    }
+
+    public List<Collaboration> getCollaborations() {
+        return Collections.unmodifiableList(collaborations);
+    }
+
+    public void setCollaborations(List<Collaboration> collaborations) {
+        this.collaborations = collaborations;
+    }
+
+    public void addCollaboration(Collaboration collaboration) {
+        collaborations.add(collaboration);
+        collaboration.setProject(this);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Project project = (Project) o;
-        return Objects.equals(id, project.id) && Objects.equals(title, project.title) && Objects.equals(owner, project.owner);
+        return Objects.equals(id, project.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, owner);
+        return Objects.hashCode(id);
     }
 }

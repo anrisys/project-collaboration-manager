@@ -1,24 +1,31 @@
 package com.anrisys.projectcollabmanager.entity;
 
-import java.time.Instant;
+import jakarta.persistence.*;
 
+import java.time.Instant;
+import java.util.Objects;
+
+@Entity
+@Table(name = "collaborations")
 public class Collaboration {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long projectId;
-    private Long userId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "update_at", nullable = false)
     private Instant updatedAt;
 
-    public Collaboration(Long id, Long projectId, Long userId, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.projectId = projectId;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    public static Collaboration fromDB(Long id, Long projectId, Long userId, Instant createdAt, Instant updatedAt) {
-        return new Collaboration(id, projectId, userId, createdAt, updatedAt);
+    public Collaboration() {
     }
 
     public Long getId() {
@@ -29,20 +36,20 @@ public class Collaboration {
         this.id = id;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Instant getCreatedAt() {
@@ -59,5 +66,17 @@ public class Collaboration {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Collaboration that = (Collaboration) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

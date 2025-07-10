@@ -1,52 +1,57 @@
 package com.anrisys.projectcollabmanager.entity;
 
-import java.time.Instant;
+import jakarta.persistence.*;
 
+import java.time.Instant;
+import java.util.Objects;
+
+@Entity
+@Table(name = "tasks")
 public class Task {
     public enum Status {
-        TODO, IN_PROGRESS, DONE
+        TODO("To Do"),
+        IN_PROGRESS("In Progress"),
+        DONE("Done");
+
+        private final String label;
+
+        Status(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "short_description")
     private String shortDescription;
-    private Long projectId;
-    private Long assigneeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id", nullable = false)
+    private User assignee;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private Status status;
-    private final Instant createdAt;
-    private final Instant updatedAt;
 
-    public Task(Long id, String title, String shortDescription, Long projectId, Long assigneeId, Status status, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.title = title;
-        this.shortDescription = shortDescription;
-        this.projectId = projectId;
-        this.status = Status.TODO;
-        this.assigneeId = assigneeId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
-    public static Task fromDB(
-            Long id,
-            String title,
-            String shortDescription,
-            Long projectId,
-            Long assigneeId,
-            String status,
-            Instant createdAt,
-            Instant updatedAt)
-    {
-        return new Task(
-                id,
-                title,
-                shortDescription,
-                projectId,
-                assigneeId,
-                Status.valueOf(status), // Convert String to Enum
-                createdAt,
-                updatedAt
-        );
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    public Task() {
     }
 
     public Long getId() {
@@ -73,20 +78,20 @@ public class Task {
         this.shortDescription = shortDescription;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
     }
 
-    public Long getAssigneeId() {
-        return assigneeId;
+    public User getAssignee() {
+        return assignee;
     }
 
-    public void setAssigneeId(Long assigneeId) {
-        this.assigneeId = assigneeId;
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 
     public Status getStatus() {
@@ -101,7 +106,27 @@ public class Task {
         return createdAt;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return Objects.equals(id, task.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

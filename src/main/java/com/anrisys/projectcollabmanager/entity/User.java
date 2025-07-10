@@ -1,31 +1,32 @@
 package com.anrisys.projectcollabmanager.entity;
 
 import com.anrisys.projectcollabmanager.util.PasswordUtil;
+import jakarta.persistence.*;
 
-import java.util.Objects;
+import java.util.*;
 
+@Entity
+@Table(name = "users")
 public class User {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "email", unique = true)
     private String email;
+
+    @Column(name = "hashed_password", nullable = false)
     private String hashedPassword;
 
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Project> projects = new ArrayList<>();
+
+    @OneToMany(mappedBy = "assignee_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Collaboration> collaborations = new ArrayList<>();
+
     public User() {
-    }
-
-    public User(String email, String rawPassword) {
-        this.email = email;
-        this.hashedPassword = PasswordUtil.hash(rawPassword);
-    }
-
-    public User(Long id, String email) {
-        this.id = id;
-        this.email = email;
-    }
-
-    public User(Long id, String email, String hashedPassword) {
-        this.id = id;
-        this.email = email;
-        this.hashedPassword = hashedPassword;
     }
 
     public Long getId() {
@@ -50,6 +51,58 @@ public class User {
 
     public void setHashedPassword(String rawPassword) {
         this.hashedPassword = PasswordUtil.hash(rawPassword);
+    }
+
+    public List<Project> getProjects() {
+        return Collections.unmodifiableList(projects);
+    }
+
+    public void setProjects(List<Project> projects) {
+        this.projects = projects;
+    }
+
+    public void addProject(Project project) {
+        projects.add(project);
+        project.setOwner(this);
+    }
+
+    public void removeProject(Project project) {
+        projects.remove(project);
+    }
+
+    public List<Task> getTasks() {
+        return Collections.unmodifiableList(tasks);
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setAssignee(this);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setAssignee(null);
+    }
+
+    public List<Collaboration> getCollaborations() {
+        return Collections.unmodifiableList(collaborations);
+    }
+
+    public void setCollaborations(List<Collaboration> collaborations) {
+        this.collaborations = collaborations;
+    }
+
+    public void addCollaboration(Collaboration collaboration) {
+        collaborations.add(collaboration);
+        collaboration.setUser(this);
+    }
+
+    public void removeCollaboration(Collaboration collaboration) {
+        collaborations.remove(collaboration);
     }
 
     @Override
