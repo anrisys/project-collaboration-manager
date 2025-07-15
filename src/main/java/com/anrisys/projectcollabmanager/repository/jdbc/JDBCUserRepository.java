@@ -1,6 +1,7 @@
 package com.anrisys.projectcollabmanager.repository.jdbc;
 
 import com.anrisys.projectcollabmanager.dto.UserDTO;
+import com.anrisys.projectcollabmanager.dto.UserRegisterRequest;
 import com.anrisys.projectcollabmanager.entity.User;
 import com.anrisys.projectcollabmanager.exception.core.DataAccessException;
 import com.anrisys.projectcollabmanager.exception.user.UserNotFoundException;
@@ -23,7 +24,7 @@ public class JDBCUserRepository implements UserRepository {
     }
 
     @Override
-    public UserDTO save(User user) throws DataAccessException {
+    public UserDTO save(UserRegisterRequest user) throws DataAccessException {
         final String methodName = "save";
         final String sql = "INSERT INTO users (email, hashed_password) VALUES(?, ?)";
 
@@ -36,8 +37,8 @@ public class JDBCUserRepository implements UserRepository {
                         Statement.RETURN_GENERATED_KEYS
                 )
             ) {
-            statement.setString(1, user.getEmail());
-            statement.setString(2, user.getHashedPassword());
+            statement.setString(1, user.email());
+            statement.setString(2, user.password());
 
             int affectedRow = statement.executeUpdate();
             log.debug("{} : Insert executed, affected rows: {}", methodName, affectedRow);
@@ -51,16 +52,17 @@ public class JDBCUserRepository implements UserRepository {
                 if(!rs.next()) {
                     log.error("{} : Insert succeeded but failed to retrieve generated ID for email: {}",
                             methodName,
-                            LoggerUtil.maskEmail(user.getEmail()));
+                            LoggerUtil.maskEmail(user.email()));
                     throw new DataAccessException("Failed to retrieve generated user ID");
                 }
                 long generatedId = rs.getLong(1);
-                user.setId(generatedId);
+                User savedUser = new User();
+                savedUser.setId(generatedId);
+                LoggerUtil.logSQLExecuted(log, methodName);
+                return new UserDTO(savedUser.getId(), user.email());
             }
-            LoggerUtil.logSQLExecuted(log, methodName);
-            return new UserDTO(user.getId(), user.getEmail());
         } catch (SQLException e) {
-            log.error("{} : Database error while saving user with email: {}", methodName, LoggerUtil.maskEmail(user.getEmail()), e);
+            log.error("{} : Database error while saving user with email: {}", methodName, LoggerUtil.maskEmail(user.email()), e);
             throw new DataAccessException("Failed to save new user", e);
         }
     }
@@ -73,7 +75,7 @@ public class JDBCUserRepository implements UserRepository {
         LoggerUtil.logSQL(log, methodName, sql);
         try (
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql);
+                PreparedStatement statement = connection.prepareStatement(sql)
                 ) {
             statement.setLong(1, id);
 
@@ -102,7 +104,7 @@ public class JDBCUserRepository implements UserRepository {
         LoggerUtil.logSQL(log, methodName, sql);
         try (
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql);
+                PreparedStatement statement = connection.prepareStatement(sql)
                 ) {
             statement.setString(1, email);
 
@@ -130,7 +132,7 @@ public class JDBCUserRepository implements UserRepository {
 
         try(
              Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
+             PreparedStatement statement = connection.prepareStatement(sql)
             ) {
             statement.setString(1, email);
 
@@ -158,7 +160,7 @@ public class JDBCUserRepository implements UserRepository {
 
         try (
              Connection connection = dataSource.getConnection();
-             PreparedStatement updateStatement = connection.prepareStatement(sql);
+             PreparedStatement updateStatement = connection.prepareStatement(sql)
              ) {
             updateStatement.setString(1, newEmail);
             updateStatement.setLong(2, id);
@@ -190,7 +192,7 @@ public class JDBCUserRepository implements UserRepository {
 
         try (
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql);
+                PreparedStatement statement = connection.prepareStatement(sql)
                 ) {
             statement.setString(1, PasswordUtil.hash(newPassword));
             statement.setLong(2, id);
@@ -220,7 +222,7 @@ public class JDBCUserRepository implements UserRepository {
         try (
                 Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql);
-                PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
+                PreparedStatement selectStmt = connection.prepareStatement(selectQuery)
             ) {
             statement.setLong(1, id);
 
